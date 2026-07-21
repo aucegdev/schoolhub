@@ -8,6 +8,7 @@ export default function AdminLayout() {
         <nav>
           <ul>
             <li><a href="/admin/school">School Info</a></li>
+            <li><a href="/admin/academic-years">Academic Years</a></li>
           </ul>
         </nav>
       </aside>

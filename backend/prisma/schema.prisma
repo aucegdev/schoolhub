@@ -64,3 +64,49 @@ model Holiday {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
+
+enum TeacherStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  RESIGNED
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  role      String    @default("TEACHER")
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  teacher   Teacher?
+}
+
+model Teacher {
+  id             String        @id @default(uuid())
+  employeeId     String        @unique
+  firstName      String
+  lastName       String
+  dateOfBirth    DateTime?
+  gender         String?
+  qualification  String?
+  specialization String?
+  experience     Int?
+  department     String?
+  designation    String?
+  dateOfJoining  DateTime?
+  email          String?
+  phone          String?
+  address        String?
+  salary         Float?
+  bankAccount    String?
+  ifscCode       String?
+  photo          String?
+  documents      String?
+  status         TeacherStatus @default(ACTIVE)
+  userId         String?       @unique
+  user           User?         @relation(fields: [userId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}

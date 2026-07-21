@@ -6,6 +6,7 @@ import path from "path";
 import schoolRoutes from "./modules/school/school.routes";
 import academicYearRoutes from "./modules/academic-year/academic-year.routes";
 import termRoutes from "./modules/term/term.routes";
+import calendarRoutes from "./modules/calendar/calendar.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -21,6 +22,7 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/v1/school", schoolRoutes);
 app.use("/api/v1/academic-years", academicYearRoutes);
 app.use("/api/v1/terms", termRoutes);
+app.use("/api/v1/calendar", calendarRoutes);
 
 app.get("/api/v1/health", (_req, res) => {
   res.json({ success: true, message: "SchoolHub API is running", timestamp: new Date().toISOString() });

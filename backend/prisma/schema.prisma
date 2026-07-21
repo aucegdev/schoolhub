@@ -48,3 +48,19 @@ model Term {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
+
+enum HolidayType {
+  PUBLIC
+  ACADEMIC
+  EMERGENCY
+}
+
+model Holiday {
+  id          String      @id @default(uuid())
+  name        String
+  date        DateTime
+  type        HolidayType @default(PUBLIC)
+  isRecurring Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}

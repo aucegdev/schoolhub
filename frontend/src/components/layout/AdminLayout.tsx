@@ -1,0 +1,19 @@
+import { Outlet } from "react-router-dom";
+
+export default function AdminLayout() {
+  return (
+    <div className="admin-layout">
+      <aside className="sidebar">
+        <h2>SchoolHub</h2>
+        <nav>
+          <ul>
+            <li><a href="/admin/school">School Info</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <main className="main-content">
+        <Outlet />
+      </main>
+    </div>
+  );
+}

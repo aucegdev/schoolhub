@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model School {
+  id               String   @id @default(uuid())
+  schoolName       String
+  tagline          String?
+  logo             String?
+  address          String?
+  city             String?
+  state            String?
+  pincode          String?
+  phone            String?
+  email            String?
+  website          String?
+  affiliationNumber String?
+  board            String?
+  establishedYear  Int?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

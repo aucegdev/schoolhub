@@ -3,6 +3,7 @@ import AdminLayout from "./components/layout/AdminLayout";
 import SchoolInfo from "./pages/admin/SchoolInfo";
 import AcademicYears from "./pages/admin/AcademicYears";
 import CalendarHolidays from "./pages/admin/CalendarHolidays";
+import TeacherManagement from "./pages/admin/TeacherManagement";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="school" element={<SchoolInfo />} />
           <Route path="academic-years" element={<AcademicYears />} />
           <Route path="calendar" element={<CalendarHolidays />} />
+          <Route path="teachers" element={<TeacherManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>

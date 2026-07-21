@@ -26,7 +26,8 @@
 └─────────────┘     └──────────────┘     └────────────┘
        │                    │
        │  JWT Token         │  RBAC Middleware
-       │  in HTTP Header    │  per Route
+       │  in HTTP Header    │  + Admin Super-Authority Check
+       │                    │  + Module Visibility Guard
 ```
 
 ### Architecture Decisions
@@ -34,6 +35,11 @@
 - **Prisma ORM:** Type safety, auto-generated types, migrations, and schema-first approach.
 - **JWT Stateless Auth:** Simple, no server-side session store required.
 - **Domain-Based Modules:** Backend organized by business domains (people, academics, assessment, finance, operations).
+- **Admin Super-Authority:** The ADMIN role bypasses all RBAC checks. A dedicated `isAdmin` middleware grants full access before role-based checks.
+- **Module Visibility Guard:** A middleware layer checks if the requested module is enabled for the user's role before processing the request. Visibility settings are stored in the database and cached in-memory.
+
+### User Management Ownership
+User Management is **admin-only**. There is no separate "User Admin" role. The administrator creates and manages all user accounts including other admins, principals, teachers, students, and parents. Frontend User Management pages are only accessible to the ADMIN role.
 
 ## 3. Folder Structure
 
@@ -139,8 +145,8 @@ Base URL: `/api/v1`
 | GET | /exams | List exams |
 | POST | /exams | Create exam |
 | POST | /exams/:id/marks | Enter marks |
-| GET | /exams/:id/result | Get results |
-| GET | /exams/:id/report-card | Download report card PDF |
+| GET | /exams/:id/result | Get results *(visibility gated)* |
+| GET | /exams/:id/report-card | Download report card PDF *(visibility gated)* |
 
 ### Fees
 | Method | Endpoint | Description |
@@ -148,13 +154,21 @@ Base URL: `/api/v1`
 | GET | /fees | List fee records |
 | POST | /fees | Record payment |
 | GET | /fees/:id/receipt | Generate receipt |
-| GET | /fees/report | Fee report |
+| GET | /fees/report | Fee report *(visibility gated)* |
+
+### Module Visibility
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /settings/module-visibility | Get visibility settings (admin) |
+| PUT | /settings/module-visibility | Update module visibility per role |
 
 ## 5. Security
 - Passwords hashed with bcrypt (salt rounds: 12)
 - JWT with RS256 or HS256, 7-day expiry
 - All API routes protected by JWT middleware
 - Role-based middleware for admin-only endpoints
+- **Admin Super-Authority:** Admin role bypasses all RBAC restrictions via `isAdmin` middleware gate
+- **Module Visibility Guard:** A middleware checks if the requested module/feature is enabled for the requesting user's role. If disabled, returns 403 regardless of role
 - Input validation via Zod schemas
 - Helmet for HTTP headers
 - CORS configured for frontend origin only

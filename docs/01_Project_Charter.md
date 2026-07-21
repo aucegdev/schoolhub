@@ -7,12 +7,13 @@ SchoolHub – Smart School Management System
 Schools manage admissions, attendance, examinations, fees, timetables, notices, and reports using manual processes or disconnected tools. This leads to data inconsistency, administrative overhead, and poor communication between stakeholders.
 
 ## Project Objective
-To build a modern, web-based School Management System that digitizes and automates daily school operations with secure role-based access for administrators, teachers, students, and parents.
+To build a modern, web-based School Management System that digitizes and automates daily school operations with secure role-based access. The system follows a super-admin model where the **Administrator has unrestricted authority** over all modules, school configuration, user management (admin, principal, teacher, student, parent accounts), and can control visibility of sensitive features (results, reports, fees) via toggle controls.
 
 ## Scope
 **In Scope:**
-- Authentication & Role-Based Access Control
-- Student, Teacher, Parent, and User Management
+- Authentication & Role-Based Access Control (with admin super-authority)
+- User Management (admin creates/manages all user accounts — admin, principal, teacher, student, parent)
+- Student, Teacher, and Parent Management
 - Academic Management (Classes, Subjects, Timetable)
 - Attendance Tracking
 - Examination Management with Report Cards

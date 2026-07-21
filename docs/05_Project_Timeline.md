@@ -12,7 +12,7 @@
 
 | Member | Modules |
 |--------|---------|
-| Jivetesh | Authentication, User Management, Student Management, Parent Management, Audit Logs |
+| Jivetesh | Authentication, User Management (admin-only CRUD), Student Management, Parent Management, Audit Logs |
 | Kathir Kalidass B | Dashboard, School Administration, Teacher & Staff Management, Academic Management, Timetable, Settings, Communication, Reports & Analytics, Events & Notice Board |
 | Paril T | Attendance, Examination, Assignment & Homework, Fees, Transport |
 

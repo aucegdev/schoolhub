@@ -109,30 +109,37 @@ model Teacher {
   user           User?         @relation(fields: [userId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  subjects       TeacherSubject[]
-  classTeacher   ClassTeacher?
+  subjects         TeacherSubject[]
+  classTeacher     ClassTeacher?
+  timetableEntries TimetableEntry[]
 }
 
 model Class {
-  id       String           @id @default(uuid())
-  name     String
-  sections Section[]
-  subjects TeacherSubject[]
+  id               String           @id @default(uuid())
+  name             String
+  sections         Section[]
+  subjects         TeacherSubject[]
+  timetableEntries TimetableEntry[]
 }
 
 model Section {
-  id        String  @id @default(uuid())
-  name      String
-  classId   String
-  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
-  classTeacher ClassTeacher?
+  id               String  @id @default(uuid())
+  name             String
+  classId          String
+  class            Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classTeacher     ClassTeacher?
+  timetableEntries TimetableEntry[]
 }
 
 model Subject {
-  id         String           @id @default(uuid())
-  name       String
-  code       String?
-  teachers   TeacherSubject[]
+  id               String           @id @default(uuid())
+  name             String
+  code             String?
+  type             String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  teachers         TeacherSubject[]
+  timetableEntries TimetableEntry[]
 }
 
 model TeacherSubject {
@@ -155,4 +162,26 @@ model ClassTeacher {
   section    Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId])
+}
+
+model TimetableEntry {
+  id         String   @id @default(uuid())
+  classId    String
+  class      Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  sectionId  String
+  section    Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subjectId  String
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId  String
+  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  day        String   // MONDAY, TUESDAY, etc.
+  startTime  String   // HH:MM
+  endTime    String   // HH:MM
+  room       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([classId, sectionId, day, startTime])
+  @@unique([teacherId, day, startTime])
+  @@unique([room, day, startTime])
 }

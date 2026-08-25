@@ -2,44 +2,57 @@
 
 ## 1. Technology Stack
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| Frontend | React + TypeScript | React 18, TS 5.x |
-| Build Tool | Vite | 5.x |
-| Styling | Tailwind CSS | 3.x |
-| UI Components | shadcn/ui | Latest |
-| Backend | Node.js + Express | Node 18, Express 4.x |
-| Database | PostgreSQL | 15 |
-| ORM | Prisma | 5.x |
-| Auth | JWT (jsonwebtoken) | 9.x |
-| Validation | Zod | 3.x |
-| Containers | Docker + Docker Compose | Latest |
-| CI/CD | Jenkins, Azure DevOps | Latest |
-| Config Mgmt | Ansible | Latest |
+| Layer | Technology | Version | Purpose |
+|-------|------------|---------|---------|
+| Frontend | React + TypeScript | React 18, TS 5.x | User interface |
+| Build Tool | Vite | 5.x | Frontend bundling |
+| Styling | Tailwind CSS | 3.x | Utility-first CSS |
+| UI Components | shadcn/ui | Latest | Pre-built components |
+| Backend | Node.js + Express | Node 18, Express 4.x | API server |
+| Database | PostgreSQL | 15 | Primary database |
+| ORM | Prisma | 5.x | Type-safe database access |
+| Auth | JWT (jsonwebtoken) | 9.x | Stateless authentication |
+| Validation | Zod | 3.x | Schema validation |
+| Containers | Docker + Docker Compose | Latest | Containerization |
+| CI Server | Jenkins | Latest | Continuous Integration |
+| Cloud CI/CD | Azure DevOps | Latest | Cloud pipeline |
+| Config Mgmt | Ansible | Latest | VM provisioning |
+| Reverse Proxy | Nginx | Latest | HTTP routing, SSL |
+| Report Service | Maven + Java | Java 17, Maven 3.9 | PDF report generation |
 
 ## 2. Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌────────────┐
-│  React App  │────▶│  Express API │────▶│ PostgreSQL │
-│  (Vite)     │     │  (Node.js)   │     │  (Prisma)  │
-└─────────────┘     └──────────────┘     └────────────┘
-       │                    │
-       │  JWT Token         │  RBAC Middleware
-       │  in HTTP Header    │  + Admin Super-Authority Check
-       │                    │  + Module Visibility Guard
+┌─────────────────────────────────────────────────────┐
+│                    Nginx (80/443)                    │
+│              Reverse Proxy + SSL Termination         │
+└──────────────────────┬──────────────────────────────┘
+                       │
+          ┌────────────┴────────────┐
+          ▼                         ▼
+┌──────────────────┐     ┌──────────────────┐
+│  Frontend (3000) │     │  Backend (5000)  │
+│  React + Vite    │     │  Express + TS    │
+│  Static files    │     │  REST API        │
+└──────────────────┘     └────────┬─────────┘
+                                  │
+                         ┌────────┴─────────┐
+                         ▼                  ▼
+                ┌──────────────┐   ┌──────────────┐
+                │  PostgreSQL  │   │ Report Svc   │
+                │  (5432)      │   │ (Maven/Java) │
+                │  Prisma ORM  │   │  PDF Engine  │
+                └──────────────┘   └──────────────┘
 ```
 
 ### Architecture Decisions
-- **Single Express Server:** Appropriate for this scale; microservices add unnecessary complexity.
-- **Prisma ORM:** Type safety, auto-generated types, migrations, and schema-first approach.
-- **JWT Stateless Auth:** Simple, no server-side session store required.
-- **Domain-Based Modules:** Backend organized by business domains (people, academics, assessment, finance, operations).
-- **Admin Super-Authority:** The ADMIN role bypasses all RBAC checks. A dedicated `isAdmin` middleware grants full access before role-based checks.
-- **Module Visibility Guard:** A middleware layer checks if the requested module is enabled for the user's role before processing the request. Visibility settings are stored in the database and cached in-memory.
-
-### User Management Ownership
-User Management is **admin-only**. There is no separate "User Admin" role. The administrator creates and manages all user accounts including other admins, principals, teachers, students, and parents. Frontend User Management pages are only accessible to the ADMIN role.
+- **Single Express Server:** Appropriate for this scale
+- **Prisma ORM:** Type safety, auto-generated types, migrations
+- **JWT Stateless Auth:** No server-side session store
+- **Domain-Based Modules:** Backend organized by business domains
+- **Admin Super-Authority:** ADMIN role bypasses all RBAC checks
+- **Module Visibility Guard:** Middleware checks module enabled per role
+- **Maven Report Service:** Java service for PDF report generation (satisfies Maven syllabus requirement)
 
 ## 3. Folder Structure
 
@@ -57,6 +70,7 @@ schoolhub/
 │   │   ├── types/            # TypeScript types
 │   │   └── styles/           # Global styles
 │   ├── Dockerfile
+│   ├── nginx.conf            # Nginx config for production
 │   └── package.json
 │
 ├── backend/
@@ -69,7 +83,7 @@ schoolhub/
 │   │   │   ├── academics/    # classes, subjects, timetable, attendance
 │   │   │   ├── assessment/   # exams, assignments
 │   │   │   ├── finance/      # fees
-│   │   │   ├── operations/   # events, notices, library, transport
+│   │   │   ├── operations/   # events, notices, transport
 │   │   │   ├── reports/
 │   │   │   └── dashboard/
 │   │   ├── routes/
@@ -82,15 +96,34 @@ schoolhub/
 │   ├── Dockerfile
 │   └── package.json
 │
-├── infrastructure/
-│   ├── docker/
-│   ├── jenkins/
-│   ├── ansible/
-│   └── azure/
+├── report-service/              # Maven Java service for PDF reports
+│   ├── pom.xml
+│   └── src/main/java/
 │
+├── ansible/
+│   ├── inventory/
+│   │   └── hosts.yml           # Azure VM inventory
+│   ├── playbook.yml             # Main playbook
+│   └── roles/
+│       ├── docker/              # Install Docker + Compose
+│       ├── nginx/               # Configure Nginx
+│       ├── schoolhub/           # Deploy application
+│       └── ssl/                 # SSL certificate setup
+│
+├── jenkins/
+│   └── Jenkinsfile              # Pipeline definition
+│
+├── docker/
+│   ├── frontend.Dockerfile
+│   └── backend.Dockerfile
+│
+├── docker-compose.yml           # Full stack orchestration
+├── azure-pipelines.yml          # Azure DevOps pipeline
 ├── docs/
-├── docker-compose.yml
-└── README.md
+├── Thesis_Title/
+├── .gitignore
+├── README.md
+└── LICENSE
 ```
 
 ## 4. API Design
@@ -146,7 +179,7 @@ Base URL: `/api/v1`
 | POST | /exams | Create exam |
 | POST | /exams/:id/marks | Enter marks |
 | GET | /exams/:id/result | Get results *(visibility gated)* |
-| GET | /exams/:id/report-card | Download report card PDF *(visibility gated)* |
+| GET | /exams/:id/report-card | Download report card PDF |
 
 ### Fees
 | Method | Endpoint | Description |
@@ -164,16 +197,197 @@ Base URL: `/api/v1`
 
 ## 5. Security
 - Passwords hashed with bcrypt (salt rounds: 12)
-- JWT with RS256 or HS256, 7-day expiry
+- JWT with HS256, 7-day expiry
 - All API routes protected by JWT middleware
 - Role-based middleware for admin-only endpoints
-- **Admin Super-Authority:** Admin role bypasses all RBAC restrictions via `isAdmin` middleware gate
-- **Module Visibility Guard:** A middleware checks if the requested module/feature is enabled for the requesting user's role. If disabled, returns 403 regardless of role
+- Admin Super-Authority bypasses all RBAC
+- Module Visibility Guard middleware
 - Input validation via Zod schemas
 - Helmet for HTTP headers
 - CORS configured for frontend origin only
+- HTTPS via Let's Encrypt on Nginx
 
-## 6. Database Schema
-See `docs/Database.md` or `backend/prisma/schema.prisma` for full schema.
+## 6. DevOps Configuration Files
 
-Key models: User, Student, Teacher, Parent, Class, Subject, Timetable, Attendance, Exam, Mark, Assignment, Submission, Fee, TransportRoute, Vehicle, Driver, Event, Notice
+### 6.1 Jenkinsfile (Jenkins CI)
+```groovy
+pipeline {
+    agent any
+    triggers {
+        githubPush()
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/aucegdev/schoolhub.git'
+            }
+        }
+        stage('Install') {
+            steps {
+                sh 'cd backend && npm install'
+                sh 'cd frontend && npm install'
+            }
+        }
+        stage('Lint') {
+            steps {
+                sh 'cd backend && npm run lint'
+                sh 'cd frontend && npm run lint'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'cd backend && npm test'
+                sh 'cd frontend && npm test'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'cd frontend && npm run build'
+                sh 'cd backend && npx tsc'
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -f docker/frontend.Dockerfile -t schoolhub-frontend .'
+                sh 'docker build -f docker/backend.Dockerfile -t schoolhub-backend .'
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+```
+
+### 6.2 azure-pipelines.yml (Azure DevOps)
+```yaml
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: BuildAndTest
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build
+    displayName: 'Build Application'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+
+    - script: |
+        cd backend && npm install
+        cd ../frontend && npm install
+      displayName: 'Install Dependencies'
+
+    - script: |
+        cd backend && npm run lint
+        cd ../frontend && npm run lint
+      displayName: 'Lint'
+
+    - script: |
+        cd backend && npm test
+        cd ../frontend && npm test
+      displayName: 'Test'
+
+    - script: |
+        cd frontend && npm run build
+      displayName: 'Build Frontend'
+
+- stage: DockerBuild
+  displayName: 'Docker Build'
+  dependsOn: BuildAndTest
+  jobs:
+  - job: Docker
+    displayName: 'Build Docker Images'
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'Azure Container Registry'
+        command: 'build'
+        Dockerfile: 'docker/backend.Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+```
+
+### 6.3 Ansible Playbook
+```yaml
+# ansible/playbook.yml
+---
+- name: Deploy SchoolHub to Azure VM
+  hosts: schoolhub_server
+  become: yes
+  roles:
+    - docker
+    - nginx
+    - schoolhub
+    - ssl
+```
+
+### 6.4 Docker Compose
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://schoolhub:password@db:5432/schoolhub
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: schoolhub
+      POSTGRES_USER: schoolhub
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  pgdata:
+```
+
+## 7. Database Schema
+Key models: User, Student, Teacher, Parent, Class, Subject, Timetable, Attendance, Exam, Mark, Assignment, Submission, Fee, TransportRoute, Vehicle, Driver, Event, Notice, AuditLog, ModuleVisibility
+
+See `backend/prisma/schema.prisma` for full schema.

@@ -1,17 +1,17 @@
 # Product Requirements Document — SchoolHub
 
 ## Vision Statement
-SchoolHub aims to be a single, unified platform that connects all stakeholders in a school ecosystem — administrators, teachers, students, and parents — through an intuitive, role-aware interface that streamlines operations and improves communication.
+SchoolHub aims to be a single, unified platform that connects all stakeholders in a school ecosystem — administrators, teachers, students, and parents — through an intuitive, role-aware interface that streamlines operations and improves communication. The project also serves as a DevOps demonstration, showcasing CI/CD with Jenkins, containerization with Docker, configuration management with Ansible, and cloud deployment with Azure DevOps.
 
 ## User Roles
 
 | Role | Description |
 |------|-------------|
-| Administrator | **Super-authority.** Unrestricted access to all modules. Creates and manages all user accounts (admin, principal, teacher, student, parent). Configures school settings, academic years, and branding. Controls visibility of sensitive features (exam results, fee reports, student data) via toggle on/off. Full audit log access. |
-| Principal | Academic oversight, reports, teacher management, can also teach classes and manage subjects |
-| Teacher | Manage assigned classes, mark attendance, conduct exams, create assignments, grade submissions |
-| Student | View personal timetable, attendance records, exam marks, homework, fee status |
-| Parent | Track child's progress, view attendance, exam results, fee dues, school notices |
+| Administrator | **Super-authority.** Unrestricted access to all modules. Creates and manages all user accounts. Configures school settings, academic years, branding. Controls visibility of sensitive features via toggle on/off. Full audit log access. |
+| Principal | Academic oversight, reports, teacher management. Can also teach classes and manage subjects. |
+| Teacher | Manage assigned classes, mark attendance, conduct exams, create assignments, grade submissions. |
+| Student | View personal timetable, attendance records, exam marks, homework, fee status. |
+| Parent | Track child's progress, view attendance, exam results, fee dues, school notices. |
 
 ## Functional Requirements
 
@@ -20,17 +20,16 @@ SchoolHub aims to be a single, unified platform that connects all stakeholders i
 - F1.2 System shall issue JWT tokens for session management
 - F1.3 Users shall reset forgotten passwords
 - F1.4 Access shall be restricted by role (RBAC)
-- F1.5 Admin has super-authority — bypasses all role restrictions, has full CRUD on all entities
+- F1.5 Admin has super-authority — bypasses all role restrictions
 
 ### F2: Dashboard
 - F2.1 Each role shall see a role-specific dashboard
 - F2.2 Dashboards shall display relevant KPIs and recent activity
 
 ### F3: User Management (Admin-Only)
-- F3.1 Admin shall create, edit, deactivate, and delete all user accounts (admin, principal, teacher, student, parent)
+- F3.1 Admin shall create, edit, deactivate, and delete all user accounts
 - F3.2 Admin shall assign and modify roles and permissions
 - F3.3 Admin shall reset passwords for any user
-- F3.4 Users shall update their own profile information only
 
 ### F4: Student Management
 - F4.1 Admin shall register new students with admission details
@@ -52,8 +51,8 @@ SchoolHub aims to be a single, unified platform that connects all stakeholders i
 ### F8: Examination
 - F8.1 Admin shall create exams with configurable max marks
 - F8.2 Teachers shall enter marks per subject
-- F8.3 System shall calculate grades, rank, and generate report cards (PDF)
-- F8.4 Admin can toggle result visibility — when OFF, students and parents cannot view results
+- F8.3 System shall calculate grades, ranks, and generate report cards (PDF)
+- F8.4 Admin can toggle result visibility
 
 ### F9: Fees
 - F9.1 Admin shall define fee structures
@@ -72,10 +71,22 @@ SchoolHub aims to be a single, unified platform that connects all stakeholders i
 - F12.2 Reports shall be exportable to PDF
 
 ### F13: Admin Module Visibility Controls
-- F13.1 Admin shall enable or disable access to specific modules/routes (exam results, fee reports, student details) per role
-- F13.2 Toggle state shall persist in database settings
-- F13.3 Disabled modules shall return 403 or hide UI elements for affected roles
-- F13.4 Changes shall take effect immediately without restart
+- F13.1 Admin shall enable or disable access to specific modules per role
+- F13.2 Toggle state shall persist in database
+- F13.3 Disabled modules shall return 403 or hide UI elements
+
+## CI/CD Acceptance Criteria
+
+| ID | Criterion |
+|----|-----------|
+| CI-01 | Every push to GitHub triggers Jenkins build within 2 minutes |
+| CI-02 | Jenkins pipeline runs: install → lint → test → build → Docker build |
+| CI-03 | Pull requests to `main` require at least 1 approval |
+| CI-04 | Azure DevOps pipeline runs on PR merge to `main` |
+| CI-05 | Docker images built and pushed for both frontend and backend |
+| CI-06 | Ansible playbook configures Azure VM from scratch |
+| CI-07 | Application accessible via Azure VM public IP after deployment |
+| CI-08 | Zero manual deployment steps after code merge to `main` |
 
 ## Non-Functional Requirements
 
@@ -87,10 +98,13 @@ SchoolHub aims to be a single, unified platform that connects all stakeholders i
 | NFR4 | JWT tokens expire after configurable duration |
 | NFR5 | Application shall be responsive on desktop and tablet |
 | NFR6 | Database backups shall be configurable |
-| NFR7 | Application shall be deployable via Docker |
+| NFR7 | Application shall be deployable via single `docker-compose up` command |
 
 ## Success Metrics
-- All 19 modules functional
-- Zero critical bugs at demo time
-- CI/CD pipeline successfully builds and deploys
+- All P0 modules functional and demonstrable
+- Jenkins CI pipeline green on every push
+- Azure DevOps pipeline builds and deploys successfully
 - Application accessible via Azure public URL
+- Docker Compose brings up entire stack with one command
+- Ansible provisions fresh Ubuntu VM to running application
+- Demo flow completes in under 15 minutes

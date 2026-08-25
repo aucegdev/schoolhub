@@ -8,6 +8,7 @@ import academicYearRoutes from "./modules/academic-year/academic-year.routes";
 import termRoutes from "./modules/term/term.routes";
 import calendarRoutes from "./modules/calendar/calendar.routes";
 import teacherRoutes from "./modules/teacher/teacher.routes";
+import teacherAssignmentRoutes from "./modules/teacher-assignment/teacher-assignment.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -25,6 +26,7 @@ app.use("/api/v1/academic-years", academicYearRoutes);
 app.use("/api/v1/terms", termRoutes);
 app.use("/api/v1/calendar", calendarRoutes);
 app.use("/api/v1/teachers", teacherRoutes);
+app.use("/api/v1/assignments", teacherAssignmentRoutes);
 
 app.get("/api/v1/health", (_req, res) => {
   res.json({ success: true, message: "SchoolHub API is running", timestamp: new Date().toISOString() });

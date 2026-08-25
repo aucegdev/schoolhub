@@ -1,0 +1,33 @@
+2  REQUIREMENTS ANALYSIS
+
+2.1  Functional Requirements
+
+\begin{tabular}{|p{2.5cm}|p{9.5cm}|}
+\hline
+\textbf{Module} & \textbf{Requirement} \\ \hline
+Authentication & Login, logout, password reset, role-based access \\ \hline
+Dashboard & Role-specific views for each user type \\ \hline
+Student Mgmt & Add, edit, delete, search, promote students \\ \hline
+Teacher Mgmt & Add, update, delete teacher profiles \\ \hline
+Class \& Subject & Create classes, sections, assign subjects \\ \hline
+Timetable & Weekly timetable creation and management \\ \hline
+Attendance & Mark daily attendance, generate reports \\ \hline
+Examination & Schedule exams, enter marks, publish results \\ \hline
+Assignments & Create, submit, track homework \\ \hline
+Fees & Fee structures, payments, receipts \\ \hline
+Transport & Bus routes, vehicles, student mapping \\ \hline
+Notice Board & Announcements, events, holiday lists \\ \hline
+Reports & Admission, attendance, exam reports \\ \hline
+\end{tabular}
+
+2.2  Non-Functional Requirements
+
+Security with JWT authentication, performance within 3-second page loads, scalability, responsive usability, and reliable error handling.
+
+2.3  User Roles
+
+\textbf{Administrator:} Full access to all modules and system settings. \textbf{Principal:} View all academic and administrative data, approve requests. \textbf{Teacher:} Manage classes, mark attendance, create assignments, enter marks. \textbf{Student:} View attendance, timetable, results, assignments, fee status. \textbf{Parent:} Monitor child's attendance, performance, homework, and fee dues.
+
+2.4  Modules
+
+SchoolHub includes 13 modules: Authentication, Dashboard, Student Management, Teacher Management, Academic Management, Timetable, Attendance, Examination, Assignments, Fees, Transport, Notice Board, and Reports.

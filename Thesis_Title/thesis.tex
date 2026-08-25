@@ -1,0 +1,53 @@
+\documentclass[a4paper]{authesis}
+
+\title{SchoolHub -- Smart School Management System}
+
+\author{
+  \student{Jivetesh}{2023103032}
+  \student{Kathir Kalidass B}{2023103546}
+  \student{Paril T}{2023103714}
+}
+\department{Computer Science and Engineering}
+\college{Anna University}
+\place{Chennai 600025}
+\dateofsubmission{April 2026}
+
+\supervisor{Supervisor Name}
+\supervisortitle{Designation of Supervisor}
+\supervisordepartment{Department of Computer Science and Engineering}
+\supervisorcollege{Anna University}
+\supervisorplace{Chennai 600025}
+
+\usepackage{graphicx}
+\usepackage[figuresright]{rotating}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+\setcounter{tocdepth}{1}
+\setcounter{secnumdepth}{3}
+
+% Remove page breaks before chapters
+\renewcommand{\clearpage}{}
+\renewcommand{\cleardoublepage}{}
+
+% Left-aligned simple chapter titles (no "Chapter" word)
+\usepackage{titlesec}
+\titleformat{\chapter}[block]
+  {\fontsize{14pt}{16.1pt}\selectfont\bfseries}
+  {\thechapter\quad}{0pt}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{1.5em}{0.8em}
+
+\begin{document}
+
+	\pagestyle{plain}
+	\pagenumbering{arabic}
+
+	\include{text/abstract}
+	\include{text/C1}
+	\include{text/C2}
+	\include{text/C3}
+	\include{text/C4}
+
+\end{document}

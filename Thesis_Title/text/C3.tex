@@ -1,0 +1,36 @@
+3  SYSTEM DESIGN
+
+3.1  Technology Stack
+
+\begin{tabular}{|p{2.5cm}|p{9.5cm}|}
+\hline
+\textbf{Layer} & \textbf{Technology} \\ \hline
+Frontend & React, TypeScript, Tailwind CSS, shadcn/ui \\ \hline
+Backend & Node.js, Express.js, TypeScript \\ \hline
+Database & PostgreSQL, Prisma ORM \\ \hline
+Auth & JWT \\ \hline
+DevOps & Docker, Jenkins, Azure DevOps \\ \hline
+\end{tabular}
+
+3.2  Architecture
+
+SchoolHub follows a three-tier architecture. The React frontend sends requests to the Node.js backend API, which processes business logic and interacts with the PostgreSQL database through Prisma ORM. JWT secures all API endpoints. Docker packages the application, and Azure hosts the deployment.
+
+3.3  Database Design
+
+Key tables: users, roles, students, teachers, parents, classes, subjects, timetable, attendance, exams, marks, fees, assignments, submissions, notices, transport\_routes, and audit\_logs.
+
+Relationships: A Class has many Students. A Teacher teaches many Subjects. An Exam has many Marks entries. Students are linked to Parents. Assignments are created by Teachers and submitted by Students.
+
+3.4  Folder Structure
+
+\begin{verbatim}
+school-management-system/
+  frontend/src/
+  backend/src/ + prisma/
+  docker/
+  jenkins/
+  azure-pipelines/
+  ansible/
+  docker-compose.yml
+\end{verbatim}

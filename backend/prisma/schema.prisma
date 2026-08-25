@@ -109,4 +109,50 @@ model Teacher {
   user           User?         @relation(fields: [userId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  subjects       TeacherSubject[]
+  classTeacher   ClassTeacher?
+}
+
+model Class {
+  id       String           @id @default(uuid())
+  name     String
+  sections Section[]
+  subjects TeacherSubject[]
+}
+
+model Section {
+  id        String  @id @default(uuid())
+  name      String
+  classId   String
+  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classTeacher ClassTeacher?
+}
+
+model Subject {
+  id         String           @id @default(uuid())
+  name       String
+  code       String?
+  teachers   TeacherSubject[]
+}
+
+model TeacherSubject {
+  id         String  @id @default(uuid())
+  teacherId  String
+  teacher    Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subjectId  String
+  subject    Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classId    String?
+  class      Class?  @relation(fields: [classId], references: [id])
+
+  @@unique([teacherId, subjectId, classId])
+}
+
+model ClassTeacher {
+  id         String   @id @default(uuid())
+  teacherId  String   @unique
+  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  sectionId  String
+  section    Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId])
 }

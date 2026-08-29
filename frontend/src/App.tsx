@@ -4,6 +4,7 @@ import SchoolInfo from "./pages/admin/SchoolInfo";
 import AcademicYears from "./pages/admin/AcademicYears";
 import CalendarHolidays from "./pages/admin/CalendarHolidays";
 import TeacherManagement from "./pages/admin/TeacherManagement";
+import SubjectManagement from "./pages/admin/SubjectManagement";
 import ClassManagement from "./pages/admin/ClassManagement";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="academic-years" element={<AcademicYears />} />
           <Route path="calendar" element={<CalendarHolidays />} />
           <Route path="teachers" element={<TeacherManagement />} />
+<Route path="subjects" element={<SubjectManagement />} />
           <Route path="classes" element={<ClassManagement />} />
         </Route>
       </Routes>

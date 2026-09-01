@@ -111,6 +111,7 @@ model Teacher {
   updatedAt      DateTime      @updatedAt
   subjects       TeacherSubject[]
   classTeacher   ClassTeacher?
+  leaveRequests  LeaveRequest[]
 }
 
 model Class {
@@ -129,10 +130,17 @@ model Section {
 }
 
 model Subject {
-  id         String           @id @default(uuid())
-  name       String
-  code       String?
-  teachers   TeacherSubject[]
+  id              String           @id @default(uuid())
+  name            String
+  code            String?
+  type            String?          // CORE, ELECTIVE, LANGUAGE
+  classId         String?          // default class scope
+  sectionId       String?          // default section scope
+  createdByUserId String?
+  updatedByUserId String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  teachers        TeacherSubject[]
 }
 
 model TeacherSubject {
@@ -155,4 +163,25 @@ model ClassTeacher {
   section    Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId])
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LeaveRequest {
+  id         String      @id @default(uuid())
+  teacherId  String
+  teacher    Teacher     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  type       String      // CASUAL, SICK, EARNED, UNPAID
+  startDate  DateTime
+  endDate    DateTime
+  reason     String
+  status     LeaveStatus @default(PENDING)
+  approvedBy String?
+  remarks    String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }

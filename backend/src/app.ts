@@ -10,6 +10,9 @@ import calendarRoutes from "./modules/calendar/calendar.routes";
 import teacherRoutes from "./modules/teacher/teacher.routes";
 import teacherAssignmentRoutes from "./modules/teacher-assignment/teacher-assignment.routes";
 import statsRoutes from "./modules/stats/stats.routes";
+import leaveRoutes from "./modules/leave/leave.routes";
+import classRoutes from "./modules/class/class.routes";
+import subjectRoutes from "./modules/subject/subject.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -29,6 +32,9 @@ app.use("/api/v1/calendar", calendarRoutes);
 app.use("/api/v1/teachers", teacherRoutes);
 app.use("/api/v1/assignments", teacherAssignmentRoutes);
 app.use("/api/v1/stats", statsRoutes);
+app.use("/api/v1/leaves", leaveRoutes);
+app.use("/api/v1/classes", classRoutes);
+app.use("/api/v1/subjects", subjectRoutes);
 
 app.get("/api/v1/health", (_req, res) => {
   res.json({ success: true, message: "SchoolHub API is running", timestamp: new Date().toISOString() });

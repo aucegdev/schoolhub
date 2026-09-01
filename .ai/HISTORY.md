@@ -242,6 +242,18 @@ Implement a real-time WebSockets notification and messaging engine across School
 - Verified 0-error frontend and backend production builds.
 - Synchronized all commits across `dev` and `main` branches on `origin`.
 
+## 2026-09-02 — Session 12 (Mandatory Feature Spec Rule Enforced in Memory)
+
+**Agent:** Antigravity
+
+### Objective
+Update project memory (`AI_AGENT.md` and `.ai/DECISIONS.md`) to establish the mandatory rule that every code change, feature implementation, or architectural modification MUST have a corresponding specification document in `docs/specs/`.
+
+### What Was Completed
+- Added mandatory feature spec rule to `AI_AGENT.md` under `## ⚠️ IMPORTANT RULES`.
+- Recorded ADR **DEC-010** in `.ai/DECISIONS.md`.
+- Synchronized all memory updates across `dev` and `main` branches on `origin`.
+
 ---
 
 *Add new sessions here. Keep all history — never delete.*

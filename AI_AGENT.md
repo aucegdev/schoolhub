@@ -110,6 +110,7 @@ See `.ai/TASKS.md` for complete list with details.
 
 ## ⚠️ IMPORTANT RULES
 
+- **MANDATORY FEATURE SPEC RULE:** For ANY code change, new feature, or enhancement, a corresponding feature specification document MUST be created/updated in `docs/specs/`.
 - **Never commit secrets** — use `.env` files (in .gitignore)
 - **Never force-push** to `main` — requires PR + 1 approval
 - **Never run destructive migrations** without backup

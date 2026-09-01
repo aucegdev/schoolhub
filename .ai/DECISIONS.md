@@ -176,5 +176,22 @@ This keeps the app deployment-ready for local development, demo work, and Azure 
 
 ---
 
+## DEC-010 — Mandatory Feature Specification for All Code Changes
+
+**Date:** 2026-09-02
+**By:** Antigravity (User Directive)
+
+**Decision:**
+For every code change, new module, UI enhancement, or architectural modification, a corresponding feature specification markdown document MUST be written and committed in `docs/specs/` (e.g. `docs/specs/13-feature-name.md`).
+
+**Reason:**
+Ensures complete documentation integrity, persistent handoffs between AI agents, explicit technical requirements, and continuous auditability.
+
+**Do Not:**
+- Implement any feature or pull request without writing its feature spec in `docs/specs/`.
+- Merge code to `dev` or `main` without updating the documentation inventory (`docs/specs/10-completed-features-inventory.md`).
+
+---
+
 *Keep architectural decisions permanent unless explicitly superseded.*
 *When superseding a decision, reference the old DEC-ID in the new entry.*

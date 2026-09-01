@@ -7,6 +7,7 @@ export default function AdminLayout() {
         <h2>SchoolHub</h2>
         <nav>
           <ul>
+            <li><a href="/admin/dashboard">Dashboard</a></li>
             <li><a href="/admin/school">School Info</a></li>
             <li><a href="/admin/academic-years">Academic Years</a></li>
             <li><a href="/admin/calendar">Calendar & Holidays</a></li>

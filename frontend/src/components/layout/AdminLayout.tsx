@@ -15,7 +15,9 @@ export default function AdminLayout() {
         <h2>SchoolHub</h2>
         <nav>
           <ul>
+            <li><a href="/" target="_blank" rel="noreferrer">🌐 View Public Portal</a></li>
             <li><a href="/admin/dashboard">Dashboard</a></li>
+            <li><a href="/admin/dashboard-customizer">✨ Customizer Engine</a></li>
             <li><a href="/admin/school">School Info</a></li>
             <li><a href="/admin/academic-years">Academic Years</a></li>
             <li><a href="/admin/calendar">Calendar & Holidays</a></li>

@@ -13,6 +13,8 @@ import StudentManagement from "./pages/admin/StudentManagement";
 import AttendanceManagement from "./pages/admin/AttendanceManagement";
 import ExamManagement from "./pages/admin/ExamManagement";
 import FeesManagement from "./pages/admin/FeesManagement";
+import DashboardCustomizer from "./pages/admin/DashboardCustomizer";
+import SchoolHome from "./pages/public/SchoolHome";
 import LoginPage from "./pages/auth/LoginPage";
 import { getStoredToken } from "./services/auth";
 
@@ -25,7 +27,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/" element={<SchoolHome />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/admin"
@@ -36,6 +38,7 @@ function App() {
           }
         >
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="dashboard-customizer" element={<DashboardCustomizer />} />
           <Route path="school" element={<SchoolInfo />} />
           <Route path="academic-years" element={<AcademicYears />} />
           <Route path="calendar" element={<CalendarHolidays />} />

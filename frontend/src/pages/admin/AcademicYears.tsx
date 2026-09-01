@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { AcademicYear, listAcademicYears, createAcademicYear, updateAcademicYear } from "../../services/academicYear";
-import { Term, listTerms, createTerm, updateTerm } from "../../services/term";
+import { type AcademicYear, listAcademicYears, createAcademicYear, updateAcademicYear } from "../../services/academicYear";
+import { type Term, listTerms, createTerm, updateTerm } from "../../services/term";
 
 const emptyYear = { name: "", startDate: "", endDate: "", isActive: true };
 const emptyTerm = { name: "", academicYearId: "", startDate: "", endDate: "", isActive: true };

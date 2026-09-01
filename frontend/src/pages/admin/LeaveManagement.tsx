@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, X, Check, Clock, CalendarDays, Stethoscope, Coins, Briefcase } from "lucide-react";
+import { Plus, X, Check, Clock, CalendarDays } from "lucide-react";
 import { listLeaves, createLeave, updateLeaveStatus, type LeaveRequest } from "../../services/leave";
 import { listTeachers, type Teacher } from "../../services/teacher";
 

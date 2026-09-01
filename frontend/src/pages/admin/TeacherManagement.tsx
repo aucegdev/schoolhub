@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Teacher, TeacherListResult, listTeachers, createTeacher, updateTeacher, deleteTeacher } from "../../services/teacher";
+import { type Teacher, type TeacherListResult, listTeachers, createTeacher, updateTeacher, deleteTeacher } from "../../services/teacher";
 
 const emptyTeacher: Teacher = {
   firstName: "", lastName: "", gender: "", qualification: "", specialization: "",

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, X, Clock, MapPin, Filter } from "lucide-react";
+import { Plus, Trash2, X, MapPin, Filter } from "lucide-react";
 import {
   listTimetable, createTimetableEntry, deleteTimetableEntry,
   type TimetableEntry

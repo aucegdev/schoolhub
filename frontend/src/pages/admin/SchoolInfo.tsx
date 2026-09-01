@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSchoolInfo, updateSchoolInfo, uploadLogo, School } from "../../services/school";
+import { getSchoolInfo, updateSchoolInfo, uploadLogo, type School } from "../../services/school";
 
 const emptySchool: School = {
   schoolName: "",

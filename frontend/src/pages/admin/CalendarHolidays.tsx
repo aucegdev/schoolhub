@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Holiday, CalendarData, getCalendar, addHoliday, removeHoliday } from "../../services/calendar";
+import { type Holiday, type CalendarData, getCalendar, addHoliday, removeHoliday } from "../../services/calendar";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -43,10 +43,6 @@ export default function CalendarHolidays() {
 
   const daysInMonth = (m: number, y: number) => new Date(y, m, 0).getDate();
   const firstDay = (m: number, y: number) => new Date(y, m - 1, 1).getDay();
-
-  const holidayDates = new Set(
-    calendar?.holidays?.map((h) => new Date(h.date).toDateString()) || []
-  );
 
   const holidayMap = new Map<string, Holiday[]>();
   calendar?.holidays?.forEach((h) => {

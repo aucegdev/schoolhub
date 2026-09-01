@@ -1,18 +1,113 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+  branches:
+    include:
+      - main
+      - dev
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
-steps:
-- script: |
-    echo "================================="
-    echo "SchoolHub Azure Pipeline"
-    echo "CI pipeline is working!"
-    echo "================================="
-  displayName: 'SchoolHub CI Test'
+variables:
+  dockerRegistry: 'schoolhubdev'
+  backendImage: 'schoolhub-backend'
+  frontendImage: 'schoolhub-frontend'
+  tag: '$(Build.BuildId)'
+  dockerRegistryConnection: 'DockerRegistryConnection'
+
+stages:
+- stage: Build
+  displayName: 'Build & Test'
+  jobs:
+  - job: BuildBackend
+    displayName: 'Build Backend'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+    - script: |
+        cd backend
+        npm ci
+      displayName: 'Install Backend Dependencies'
+    - script: |
+        cd backend
+        npm run lint
+      displayName: 'Lint Backend'
+    - script: |
+        cd backend
+        npx prisma generate
+        npm run build
+      displayName: 'Build Backend'
+  
+  - job: BuildFrontend
+    displayName: 'Build Frontend'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+    - script: |
+        cd frontend
+        npm ci
+      displayName: 'Install Frontend Dependencies'
+    - script: |
+        cd frontend
+        npm run lint
+      displayName: 'Lint Frontend'
+    - script: |
+        cd frontend
+        npm run build
+      displayName: 'Build Frontend'
+
+- stage: Docker
+  displayName: 'Docker Build'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: DockerBuild
+    displayName: 'Docker Build & Push'
+    steps:
+    - task: Docker@2
+      displayName: 'Build and push backend image'
+      inputs:
+        containerRegistry: '$(dockerRegistryConnection)'
+        repository: '$(dockerRegistry)/$(backendImage)'
+        command: 'buildAndPush'
+        Dockerfile: 'backend/Dockerfile'
+        tags: |
+          $(tag)
+          latest
+    
+    - task: Docker@2
+      displayName: 'Build and push frontend image'
+      inputs:
+        containerRegistry: '$(dockerRegistryConnection)'
+        repository: '$(dockerRegistry)/$(frontendImage)'
+        command: 'buildAndPush'
+        Dockerfile: 'frontend/Dockerfile'
+        tags: |
+          $(tag)
+          latest
+
+- stage: Deploy
+  displayName: 'Deploy to Azure VM'
+  dependsOn: Docker
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: DeployToVM
+    displayName: 'Deploy to Production VM'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            displayName: 'Deploy application via SSH'
+            inputs:
+              sshEndpoint: 'ProductionVM_SSH'
+              runOptions: 'commands'
+              commands: |
+                cd /opt/schoolhub
+                docker compose pull
+                docker compose up -d
+                docker image prune -af

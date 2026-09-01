@@ -1,0 +1,22 @@
+---
+- name: Setup SSL with Certbot
+  hosts: production
+  become: yes
+  
+  vars:
+    domain_name: schoolhub.example.com  # Replace with actual domain
+    email: admin@example.com           # Replace with admin email
+
+  tasks:
+    - name: Request SSL certificate
+      command: >
+        certbot --nginx -n --agree-tos --email {{ email }} 
+        -d {{ domain_name }} 
+        --redirect
+      args:
+        creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+      
+    - name: Ensure Nginx is reloaded
+      systemd:
+        name: nginx
+        state: reloaded

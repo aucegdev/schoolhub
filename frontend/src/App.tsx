@@ -9,13 +9,28 @@ import TimetableManagement from "./pages/admin/TimetableManagement";
 import LeaveManagement from "./pages/admin/LeaveManagement";
 import SubjectManagement from "./pages/admin/SubjectManagement";
 import ClassManagement from "./pages/admin/ClassManagement";
+import LoginPage from "./pages/auth/LoginPage";
+import { getStoredToken } from "./services/auth";
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = Boolean(getStoredToken());
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+}
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="school" element={<SchoolInfo />} />
           <Route path="academic-years" element={<AcademicYears />} />

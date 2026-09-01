@@ -49,6 +49,126 @@ model Term {
   updatedAt      DateTime     @updatedAt
 }
 
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  GRADUATED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+model Student {
+  id            String        @id @default(uuid())
+  admissionNo   String        @unique
+  rollNumber    String?
+  firstName     String
+  lastName      String
+  dateOfBirth   DateTime?
+  gender        String?
+  email         String?
+  phone         String?
+  address       String?
+  guardianName  String?
+  guardianPhone String?
+  guardianEmail String?
+  status        StudentStatus @default(ACTIVE)
+
+  classId       String?
+  class         Class?        @relation(fields: [classId], references: [id])
+
+  sectionId     String?
+  section       Section?      @relation(fields: [sectionId], references: [id])
+
+  attendances   Attendance[]
+  examMarks     ExamMark[]
+  feePayments   FeePayment[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId   String
+  sectionId String
+  date      DateTime
+  status    AttendanceStatus @default(PRESENT)
+  remarks   String?
+
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([studentId, date])
+}
+
+model Exam {
+  id           String     @id @default(uuid())
+  title        String
+  examType     String     // MIDTERM, FINAL, UNIT_TEST
+  classId      String
+  subjectId    String
+  subject      Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examDate     DateTime
+  totalMarks   Float
+  passingMarks Float
+  marks        ExamMark[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model ExamMark {
+  id            String   @id @default(uuid())
+  examId        String
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  marksObtained Float
+  remarks       String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([examId, studentId])
+}
+
+model FeeStructure {
+  id          String       @id @default(uuid())
+  title       String
+  classId     String
+  amount      Float
+  dueDate     DateTime
+  description String?
+  payments    FeePayment[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model FeePayment {
+  id             String       @id @default(uuid())
+  feeStructureId String
+  feeStructure   FeeStructure @relation(fields: [feeStructureId], references: [id], onDelete: Cascade)
+  studentId      String
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amountPaid     Float
+  paymentDate    DateTime     @default(now())
+  paymentMode    String       // CASH, CARD, UPI, BANK_TRANSFER
+  transactionId  String?
+  status         String       @default("PAID")
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
 enum HolidayType {
   PUBLIC
   ACADEMIC
@@ -124,6 +244,7 @@ model Class {
   sections         Section[]
   subjects         TeacherSubject[]
   timetableEntries TimetableEntry[]
+  students         Student[]
 }
 
 model Section {
@@ -134,6 +255,7 @@ model Section {
   class            Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
   classTeacher     ClassTeacher?
   timetableEntries TimetableEntry[]
+  students         Student[]
 }
 
 model Subject {
@@ -148,6 +270,7 @@ model Subject {
 
   teachers        TeacherSubject[]
   timetableEntries TimetableEntry[]
+  exams           Exam[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt

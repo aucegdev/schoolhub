@@ -15,6 +15,10 @@ import subjectRoutes from "./modules/subject/subject.routes";
 import timetableRoutes from "./modules/timetable/timetable.routes";
 import statsRoutes from "./modules/stats/stats.routes";
 import leaveRoutes from "./modules/leave/leave.routes";
+import studentRoutes from "./modules/student/student.routes";
+import attendanceRoutes from "./modules/attendance/attendance.routes";
+import examinationRoutes from "./modules/examination/examination.routes";
+import feesRoutes from "./modules/fees/fees.routes";
 
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -55,6 +59,10 @@ app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/timetable", timetableRoutes);
 app.use("/api/v1/stats", statsRoutes);
 app.use("/api/v1/leaves", leaveRoutes);
+app.use("/api/v1/students", studentRoutes);
+app.use("/api/v1/attendance", attendanceRoutes);
+app.use("/api/v1/exams", examinationRoutes);
+app.use("/api/v1/fees", feesRoutes);
 
 // Health check
 app.get("/api/v1/health", (_req, res) => {

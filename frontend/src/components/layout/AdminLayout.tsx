@@ -19,10 +19,14 @@ export default function AdminLayout() {
             <li><a href="/admin/school">School Info</a></li>
             <li><a href="/admin/academic-years">Academic Years</a></li>
             <li><a href="/admin/calendar">Calendar & Holidays</a></li>
+            <li><a href="/admin/students">Students</a></li>
             <li><a href="/admin/teachers">Teachers</a></li>
             <li><a href="/admin/classes">Classes & Sections</a></li>
             <li><a href="/admin/subjects">Subjects</a></li>
             <li><a href="/admin/timetable">Timetable</a></li>
+            <li><a href="/admin/attendance">Attendance</a></li>
+            <li><a href="/admin/exams">Examinations</a></li>
+            <li><a href="/admin/fees">Fees & Billing</a></li>
             <li><a href="/admin/leave">Leave Requests</a></li>
           </ul>
         </nav>

@@ -9,6 +9,10 @@ import TimetableManagement from "./pages/admin/TimetableManagement";
 import LeaveManagement from "./pages/admin/LeaveManagement";
 import SubjectManagement from "./pages/admin/SubjectManagement";
 import ClassManagement from "./pages/admin/ClassManagement";
+import StudentManagement from "./pages/admin/StudentManagement";
+import AttendanceManagement from "./pages/admin/AttendanceManagement";
+import ExamManagement from "./pages/admin/ExamManagement";
+import FeesManagement from "./pages/admin/FeesManagement";
 import LoginPage from "./pages/auth/LoginPage";
 import { getStoredToken } from "./services/auth";
 
@@ -35,10 +39,14 @@ function App() {
           <Route path="school" element={<SchoolInfo />} />
           <Route path="academic-years" element={<AcademicYears />} />
           <Route path="calendar" element={<CalendarHolidays />} />
+          <Route path="students" element={<StudentManagement />} />
           <Route path="teachers" element={<TeacherManagement />} />
           <Route path="classes" element={<ClassManagement />} />
           <Route path="subjects" element={<SubjectManagement />} />
           <Route path="timetable" element={<TimetableManagement />} />
+          <Route path="attendance" element={<AttendanceManagement />} />
+          <Route path="exams" element={<ExamManagement />} />
+          <Route path="fees" element={<FeesManagement />} />
           <Route path="leave" element={<LeaveManagement />} />
         </Route>
       </Routes>

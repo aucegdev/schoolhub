@@ -1,0 +1,69 @@
+---
+- name: Provision Azure VM with Docker, Nginx, and tools
+  hosts: production
+  become: yes
+
+  tasks:
+    - name: Update apt cache and install prerequisites
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - git
+          - nginx
+          - certbot
+          - python3-certbot-nginx
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG apt key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Install Docker CE and Docker Compose plugin
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running and enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create app group
+      group:
+        name: schoolhub
+        state: present
+
+    - name: Create app user
+      user:
+        name: schoolhub
+        group: schoolhub
+        groups: docker
+        append: yes
+        state: present
+        create_home: yes
+        system: yes
+
+    - name: Create app directory
+      file:
+        path: /opt/schoolhub
+        state: directory
+        owner: schoolhub
+        group: schoolhub
+        mode: '0755'

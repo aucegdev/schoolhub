@@ -1,6 +1,14 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { signOutWithGoogle } from "../../services/auth";
 
 export default function AdminLayout() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOutWithGoogle();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="admin-layout">
       <aside className="sidebar">
@@ -18,6 +26,9 @@ export default function AdminLayout() {
             <li><a href="/admin/leave">Leave Requests</a></li>
           </ul>
         </nav>
+        <button type="button" onClick={handleLogout} style={{ marginTop: 16, padding: "10px 12px", borderRadius: 10, border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer" }}>
+          Logout
+        </button>
       </aside>
 
       <main className="main-content">

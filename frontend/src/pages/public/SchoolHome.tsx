@@ -16,7 +16,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { EDUCATIONAL_QUOTES } from "../../utils/quotes";
-import ThreeCanvas from "../../components/3d/ThreeCanvas";
+import ThreeSchoolWorld from "../../components/3d/ThreeSchoolWorld";
 import CountUp from "../../components/ui/CountUp";
 import GlassCard from "../../components/ui/GlassCard";
 import { triggerCelebrationConfetti } from "../../components/3d/CelebrationConfetti";
@@ -286,11 +286,10 @@ export default function SchoolHome() {
               </Link>
             </div>
           </div>
-
-          {/* Interactive 3D WebGL Canvas */}
+          {/* Interactive 3D WebGL Canvas Layer */}
           <div className="lg:col-span-5 relative flex justify-center">
-            <div className="w-full max-w-md h-[360px] bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-md rounded-3xl border border-indigo-200/50 p-2 shadow-xl">
-              <ThreeCanvas variant="hero" />
+            <div className="w-full max-w-md h-[400px] bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-pink-500/20 backdrop-blur-xl rounded-3xl border border-white/40 p-3 shadow-2xl shadow-indigo-950/20 animate-pulse-glow">
+              <ThreeSchoolWorld />
             </div>
           </div>
         </div>

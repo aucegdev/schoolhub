@@ -1,0 +1,61 @@
+---
+- name: Deploy application
+  hosts: production
+  become: yes
+  
+  vars:
+    app_dir: /opt/schoolhub
+    db_container: schoolhub-db
+    backend_container: schoolhub-backend
+
+  tasks:
+    - name: Ensure app directory exists
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: schoolhub
+        group: schoolhub
+
+    - name: Copy docker-compose file
+      copy:
+        src: ../../docker-compose.yml
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: schoolhub
+        group: schoolhub
+
+    - name: Copy production env file (Ensure this exists locally)
+      copy:
+        src: ../../.env.production
+        dest: "{{ app_dir }}/.env"
+        owner: schoolhub
+        group: schoolhub
+        mode: '0600'
+      ignore_errors: yes  # Ignored if missing locally during automated runs
+
+    - name: Pull Docker images
+      command: docker compose pull
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: schoolhub
+
+    - name: Restart Docker Compose services
+      command: docker compose up -d
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: schoolhub
+
+    - name: Wait for database to be ready
+      command: docker exec {{ db_container }} pg_isready -U postgres
+      register: db_status
+      until: db_status.rc == 0
+      retries: 10
+      delay: 5
+
+    - name: Run Prisma migrations
+      command: docker exec {{ backend_container }} npx prisma migrate deploy
+      become_user: root
+
+    - name: Verify backend container is running
+      command: docker ps -q -f name={{ backend_container }}
+      register: backend_running
+      failed_when: backend_running.stdout == ""

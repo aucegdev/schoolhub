@@ -224,6 +224,24 @@ Enhance the visual experience with vibrant dynamic lighting (cyan, magenta, gold
 - Verified 0-error frontend and backend production builds.
 - Synchronized all commits across `dev` and `main` branches on `origin`.
 
+## 2026-09-02 — Session 11 (Real-Time Notifications & Messaging Engine with Socket.io)
+
+**Agent:** Antigravity
+
+### Objective
+Implement a real-time WebSockets notification and messaging engine across SchoolHub using Socket.io and Prisma DB persistence.
+
+### What Was Completed
+- Installed `socket.io` (backend) and `socket.io-client` (frontend).
+- Built Socket.io server manager (`backend/src/config/socket.ts`) attached to Express HTTP server.
+- Added `Notification` model to Prisma schema (`backend/prisma/schema.prisma`).
+- Created notification backend service, controllers, and REST routes (`/api/v1/notifications`).
+- Added real-time notification trigger on teacher leave request approvals (`leave.service.ts`).
+- Created `NotificationCenter.tsx` frontend component with animated bell icon, unread counter badge, notice drawer, toast popups, and celebration confetti integration.
+- Created Feature Spec 12 (`docs/specs/12-realtime-notifications-websockets.md`).
+- Verified 0-error frontend and backend production builds.
+- Synchronized all commits across `dev` and `main` branches on `origin`.
+
 ---
 
 *Add new sessions here. Keep all history — never delete.*

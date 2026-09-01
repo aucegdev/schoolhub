@@ -8,22 +8,22 @@ datasource db {
 }
 
 model School {
-  id               String   @id @default(uuid())
-  schoolName       String
-  tagline          String?
-  logo             String?
-  address          String?
-  city             String?
-  state            String?
-  pincode          String?
-  phone            String?
-  email            String?
-  website          String?
+  id                String   @id @default(uuid())
+  schoolName        String
+  tagline           String?
+  logo              String?
+  address           String?
+  city              String?
+  state             String?
+  pincode           String?
+  phone             String?
+  email             String?
+  website           String?
   affiliationNumber String?
-  board            String?
-  establishedYear  Int?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  board             String?
+  establishedYear   Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model AcademicYear {
@@ -105,28 +105,35 @@ model Teacher {
   photo          String?
   documents      String?
   status         TeacherStatus @default(ACTIVE)
+
   userId         String?       @unique
   user           User?         @relation(fields: [userId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+
   subjects       TeacherSubject[]
   classTeacher   ClassTeacher?
+  timetableEntries TimetableEntry[]
   leaveRequests  LeaveRequest[]
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model Class {
-  id       String           @id @default(uuid())
-  name     String
-  sections Section[]
-  subjects TeacherSubject[]
+  id               String           @id @default(uuid())
+  name             String
+  sections         Section[]
+  subjects         TeacherSubject[]
+  timetableEntries TimetableEntry[]
 }
 
 model Section {
-  id        String  @id @default(uuid())
-  name      String
-  classId   String
-  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
-  classTeacher ClassTeacher?
+  id               String           @id @default(uuid())
+  name             String
+  classId          String
+
+  class            Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classTeacher     ClassTeacher?
+  timetableEntries TimetableEntry[]
 }
 
 model Subject {
@@ -134,21 +141,26 @@ model Subject {
   name            String
   code            String?
   type            String?          // CORE, ELECTIVE, LANGUAGE
-  classId         String?          // default class scope
-  sectionId       String?          // default section scope
+  classId         String?          // Default class scope
+  sectionId       String?          // Default section scope
   createdByUserId String?
   updatedByUserId String?
+
+  teachers        TeacherSubject[]
+  timetableEntries TimetableEntry[]
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  teachers        TeacherSubject[]
 }
 
 model TeacherSubject {
   id         String  @id @default(uuid())
   teacherId  String
   teacher    Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
   subjectId  String
   subject    Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
   classId    String?
   class      Class?  @relation(fields: [classId], references: [id])
 
@@ -159,10 +171,39 @@ model ClassTeacher {
   id         String   @id @default(uuid())
   teacherId  String   @unique
   teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
   sectionId  String
   section    Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([sectionId])
+}
+
+model TimetableEntry {
+  id         String   @id @default(uuid())
+
+  classId    String
+  class      Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  sectionId  String
+  section    Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  subjectId  String
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  teacherId  String
+  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  day        String   // MONDAY, TUESDAY, etc.
+  startTime  String   // HH:MM
+  endTime    String   // HH:MM
+  room       String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([classId, sectionId, day, startTime])
+  @@unique([teacherId, day, startTime])
+  @@unique([room, day, startTime])
 }
 
 enum LeaveStatus {
@@ -173,15 +214,19 @@ enum LeaveStatus {
 
 model LeaveRequest {
   id         String      @id @default(uuid())
+
   teacherId  String
   teacher    Teacher     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
   type       String      // CASUAL, SICK, EARNED, UNPAID
   startDate  DateTime
   endDate    DateTime
   reason     String
+
   status     LeaveStatus @default(PENDING)
   approvedBy String?
   remarks    String?
+
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }

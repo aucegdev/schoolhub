@@ -45,7 +45,11 @@ export async function addSection(classId: string, data: { name: string }): Promi
   return res.data.data;
 }
 
-export async function updateSection(classId: string, sectionId: string, data: { name: string }): Promise<SectionData> {
+export async function updateSection(
+  classId: string,
+  sectionId: string,
+  data: { name: string }
+): Promise<SectionData> {
   const res = await api.put(`/classes/${classId}/sections/${sectionId}`, data);
   return res.data.data;
 }

@@ -237,6 +237,9 @@ ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml
 | Timetable (conflict detect) | ✅ | ✅ | `/admin/timetable` |
 | Teacher Leave | ✅ | ✅ | `/admin/leave` |
 | Dashboard Stats | ✅ | ✅ | `/admin/dashboard` |
+| Universal Public School Portal | ✅ | ✅ | `/` |
+| Admin Dashboard Customizer Engine | ✅ | ✅ | `/admin/dashboard-customizer` |
+| Educational Quote Engine & Animations | ✅ | ✅ | Global |
 | Student Directory | ✅ | ✅ | `/admin/students` |
 | Attendance Marking | ✅ | ✅ | `/admin/attendance` |
 | Examination & Evaluation | ✅ | ✅ | `/admin/exams` |

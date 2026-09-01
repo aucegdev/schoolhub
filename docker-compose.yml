@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: schoolhub-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-schoolhub_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-schoolhub}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - schoolhub-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: schoolhub-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@schoolhub.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - schoolhub-network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: schoolhub-backend
+    ports:
+      - "${PORT:-4000}:4000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:schoolhub_pass@postgres:5432/schoolhub?schema=public}
+      PORT: ${PORT:-4000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-change-in-production}
+      NODE_ENV: ${NODE_ENV:-development}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - schoolhub-network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: schoolhub-frontend
+    ports:
+      - "3000:80"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:4000/api/v1}
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - schoolhub-network
+
+networks:
+  schoolhub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { signOutWithGoogle } from "../../services/auth";
+import NotificationCenter from "./NotificationCenter";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -38,6 +39,10 @@ export default function AdminLayout() {
       </aside>
 
       <main className="main-content">
+        <div className="flex justify-between items-center pb-4 mb-6 border-b border-slate-100">
+          <span className="text-xs font-semibold text-slate-400">SchoolHub Admin Workspace</span>
+          <NotificationCenter />
+        </div>
         <Outlet />
       </main>
     </div>

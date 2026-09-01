@@ -19,6 +19,7 @@ import { EDUCATIONAL_QUOTES } from "../../utils/quotes";
 import ThreeSchoolWorld from "../../components/3d/ThreeSchoolWorld";
 import CountUp from "../../components/ui/CountUp";
 import GlassCard from "../../components/ui/GlassCard";
+import NotificationCenter from "../../components/layout/NotificationCenter";
 import { triggerCelebrationConfetti } from "../../components/3d/CelebrationConfetti";
 
 export interface DashboardConfig {
@@ -251,6 +252,7 @@ export default function SchoolHome() {
           </div>
 
           <div className="flex items-center gap-4">
+            <NotificationCenter />
             <Link
               to="/login"
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition"

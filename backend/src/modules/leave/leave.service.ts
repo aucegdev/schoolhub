@@ -89,7 +89,7 @@ export async function updateLeaveStatus(id: string, status: string, approvedBy: 
     throw new AppError("Invalid status. Must be APPROVED or REJECTED", 400);
   }
 
-  return prisma.leaveRequest.update({
+  const updated = await prisma.leaveRequest.update({
     where: { id },
     data: {
       status: status as any,
@@ -102,6 +102,20 @@ export async function updateLeaveStatus(id: string, status: string, approvedBy: 
       },
     },
   });
+
+  // Real-time Notification
+  try {
+    const { createNotification } = await import("../notification/notification.service");
+    await createNotification({
+      title: `Leave Request ${status}`,
+      message: `Leave request for ${updated.teacher?.firstName} ${updated.teacher?.lastName} was ${status.toLowerCase()}.`,
+      type: "LEAVE_STATUS",
+      role: "ALL",
+      link: "/admin/leave",
+    });
+  } catch {}
+
+  return updated;
 }
 
 export async function deleteLeave(id: string) {

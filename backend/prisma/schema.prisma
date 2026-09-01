@@ -353,3 +353,23 @@ model LeaveRequest {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
+
+enum NotificationType {
+  LEAVE_STATUS
+  ATTENDANCE_ALERT
+  EXAM_ANNOUNCEMENT
+  SYSTEM_NOTICE
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  title     String
+  message   String
+  type      NotificationType @default(SYSTEM_NOTICE)
+  userId    String?
+  role      String?          // e.g. "ALL", "ADMIN", "TEACHER"
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}

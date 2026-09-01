@@ -1,0 +1,74 @@
+version: '3'
+
+tasks:
+  default:
+    desc: "Display all available SchoolHub tasks"
+    cmds:
+      - task --list
+
+  run:dev:ui:
+    desc: "Run Frontend React Vite UI in development mode"
+    cmds:
+      - npm run dev --prefix frontend
+
+  run:dev:backend:
+    desc: "Run Backend Express API in development mode"
+    cmds:
+      - npm run dev --prefix backend
+
+  run:dev:all:
+    desc: "Run full stack local development environment"
+    cmds:
+      - ./scripts/docker-run.sh
+
+  build:ui:
+    desc: "Build Frontend UI production bundle"
+    cmds:
+      - npm run build --prefix frontend
+
+  build:backend:
+    desc: "Build Backend TypeScript & Prisma Client"
+    cmds:
+      - npm run build --prefix backend
+
+  build:all:
+    desc: "Build full stack (Backend & Frontend)"
+    cmds:
+      - npm run build
+
+  lint:all:
+    desc: "Lint full stack codebase"
+    cmds:
+      - npm run lint
+
+  docker:up:
+    desc: "Launch Docker containers (Postgres + PgAdmin + Backend + Frontend)"
+    cmds:
+      - ./scripts/docker-run.sh
+
+  docker:prod:
+    desc: "Launch production multi-container stack with Nginx"
+    cmds:
+      - docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+
+  docker:down:
+    desc: "Stop and clean up Docker containers"
+    cmds:
+      - docker compose down
+
+  db:generate:
+    desc: "Generate Prisma Client from schema"
+    dir: backend
+    cmds:
+      - npx prisma generate
+
+  db:migrate:
+    desc: "Apply Prisma migrations"
+    dir: backend
+    cmds:
+      - npx prisma migrate dev
+
+  verify:devops:
+    desc: "Run automated DevOps deployment verification audit"
+    cmds:
+      - ./scripts/verify-devops-deployment.sh

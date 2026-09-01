@@ -236,27 +236,19 @@ ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml
 | Subject Management | ✅ | ✅ | `/admin/subjects` |
 | Timetable (conflict detect) | ✅ | ✅ | `/admin/timetable` |
 | Teacher Leave | ✅ | ✅ | `/admin/leave` |
-| Dashboard Stats | ✅ | 🔄 | `/admin/dashboard` |
+| Dashboard Stats | ✅ | ✅ | `/admin/dashboard` |
+| Student Directory | ✅ | ✅ | `/admin/students` |
+| Attendance Marking | ✅ | ✅ | `/admin/attendance` |
+| Examination & Evaluation | ✅ | ✅ | `/admin/exams` |
+| Fees & Billing Management | ✅ | ✅ | `/admin/fees` |
 
-### ⏳ Not Yet Implemented
+### ⏳ Future / Optional Enhancements
 
-| Module | Priority | Owner | Depends On |
-|--------|----------|-------|------------|
-| Auth (real JWT verify) | P0 | Jivetesh | — |
-| Student CRUD | P0 | Jivetesh | Auth |
-| User Management | P0 | Jivetesh | Auth |
-| Parent Management | P0 | Jivetesh | Student |
-| Settings / Visibility | P0 | Kathir | — |
-| Attendance | P1 | Paril | Class, Teacher |
-| Examination & Marks | P1 | Paril | Class, Subject, Student |
-| Fees | P1 | Paril | Student |
-| Assignment & Homework | P1 | Paril | Class, Subject, Student |
-| Report Card PDF | P1 | Kathir | Maven service |
-| Transport | P2 | Paril | — |
-| Events & Notices | P2 | Kathir | — |
-| Communication | P2 | Kathir | — |
-| Reports & Analytics | P2 | Kathir | — |
-| Audit Logs | P2 | Jivetesh | — |
+| Module | Priority | Owner | Notes |
+|--------|----------|-------|-------|
+| Maven Report Service PDF | P1 | Kathir | External PDF engine |
+| Parent & Student Portal | P2 | Jivetesh | Role-specific views |
+| Transport & Notice Board | P2 | Kathir | Operations |
 
 ### ✅ DevOps — All Done
 

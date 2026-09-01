@@ -47,6 +47,7 @@ export default function DashboardCustomizer() {
     announcement: "📢 Top Announcement Marquee",
     stats: "📊 Key Statistics Counter Cards",
     features: "⚡ Smart Management Modules Grid",
+    students_avatars: "🧑🎓 Interactive Student Profiles Showcase",
     quote: "💬 Educational Thought of the Day",
     admissions: "🚀 Call to Action Banner",
   };

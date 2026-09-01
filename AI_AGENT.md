@@ -239,7 +239,7 @@ ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml
 | Dashboard Stats | ✅ | ✅ | `/admin/dashboard` |
 | Universal Public School Portal | ✅ | ✅ | `/` |
 | Admin Dashboard Customizer Engine | ✅ | ✅ | `/admin/dashboard-customizer` |
-| 3D WebGL & Motion UI Stack (Three.js, Motion, Confetti) | ✅ | ✅ | Global |
+| 3D WebGL School Citadel & Motion UI Stack (ThreeSchoolWorld, Motion, Confetti) | ✅ | ✅ | Global |
 | Student Directory | ✅ | ✅ | `/admin/students` |
 | Attendance Marking | ✅ | ✅ | `/admin/attendance` |
 | Examination & Evaluation | ✅ | ✅ | `/admin/exams` |

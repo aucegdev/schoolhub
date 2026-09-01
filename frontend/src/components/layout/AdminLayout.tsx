@@ -12,6 +12,8 @@ export default function AdminLayout() {
             <li><a href="/admin/calendar">Calendar & Holidays</a></li>
             <li><a href="/admin/teachers">Teachers</a></li>
             <li><a href="/admin/leave">Leave Requests</a></li>
+            <li><a href="/admin/subjects">Subjects</a></li>
+            <li><a href="/admin/classes">Classes & Sections</a></li>
           </ul>
         </nav>
       </aside>

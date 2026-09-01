@@ -130,10 +130,17 @@ model Section {
 }
 
 model Subject {
-  id         String           @id @default(uuid())
-  name       String
-  code       String?
-  teachers   TeacherSubject[]
+  id              String           @id @default(uuid())
+  name            String
+  code            String?
+  type            String?          // CORE, ELECTIVE, LANGUAGE
+  classId         String?          // default class scope
+  sectionId       String?          // default section scope
+  createdByUserId String?
+  updatedByUserId String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  teachers        TeacherSubject[]
 }
 
 model TeacherSubject {

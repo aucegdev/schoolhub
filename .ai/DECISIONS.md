@@ -155,5 +155,26 @@ Frontend pages organized under `frontend/src/pages/{module-name}/`.
 
 ---
 
+## DEC-009 — Firebase Google Authentication + JWT Hybrid
+
+**Date:** 2026-09-02
+**By:** Kathir-Kalidass
+
+**Decision:**
+Use a hybrid authentication model:
+- Firebase Google OAuth is the preferred browser sign-in flow for the frontend.
+- Backend continues to support standard JWT tokens for machine-to-machine and internal API calls.
+- Auth middleware validates either a Firebase ID token or a signed JWT, depending on which config is present.
+
+**Reason:**
+This keeps the app deployment-ready for local development, demo work, and Azure production while preserving compatibility with the earlier JWT-based backend architecture.
+
+**Do Not:**
+- Remove the legacy JWT path before the Firebase configuration is verified in production.
+- Hardcode Firebase config values into source files.
+- Commit secrets into the repository — use `.env` and deployment variables.
+
+---
+
 *Keep architectural decisions permanent unless explicitly superseded.*
 *When superseding a decision, reference the old DEC-ID in the new entry.*

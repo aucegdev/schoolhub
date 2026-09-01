@@ -144,4 +144,40 @@ Create AI_AGENT.md and `.ai/` persistent memory structure for cross-agent collab
 
 ---
 
+## 2026-09-02 — Session 6 (Auth hardening + Firebase + env readiness)
+
+**Agent:** Kathir-Kalidass + Copilot
+
+### Objective
+Complete the authentication security gap and prepare the project for local-and-cloud-ready configuration.
+
+### What Was Discovered
+- `backend/src/middleware/auth.ts` used a hardcoded mock admin user and bypassed JWT verification.
+- Firebase Google sign-in was not configured in the frontend or backend.
+- `env` templates were incomplete and did not cover Firebase, Docker, or Azure deployment variables.
+
+### What Was Completed
+- Real JWT verification added to the backend middleware.
+- Firebase Admin SDK added for backend token verification.
+- Firebase Google login support added to the frontend with `VITE_FIREBASE_*` configuration.
+- Root, backend, and frontend `.env.example` files updated with all required deployment variables.
+- AI memory files expanded with environment, Firebase, and deployment context.
+- README updated with local setup, Firebase instructions, and deployment notes.
+
+### Problems Fixed
+- Mock auth bypass removed.
+- Missing Firebase setup path documented and scaffolded.
+- Config drift between local/dev and Azure deployment reduced.
+
+### Still Open
+- Final production Firebase credentials must be supplied in the deployed environment.
+- Application modules (Attendance, Exams, Fees, Transport) remain as follow-up feature work.
+
+### Next Agent Should
+1. Keep env values in `.env` files only.
+2. Update the deployed Azure environment variables before production login tests.
+3. Continue with the remaining module implementations and verify the full user flow.
+
+---
+
 *Add new sessions here. Keep all history — never delete.*

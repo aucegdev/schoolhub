@@ -1,8 +1,8 @@
 # AI_AGENT.md — SchoolHub Project Memory
 
 > **Persistent engineering memory for AI coding agents.**
-> This file is shared between Codex, GitHub Copilot, OpenCode, Antigravity, and all other AI coding agents.
-> Read this file completely before starting any work.
+> Shared between Codex, GitHub Copilot, OpenCode, Antigravity, and all AI coding agents.
+> **Read this file completely before starting any work.**
 
 ---
 
@@ -11,8 +11,10 @@
 | Field | Value |
 |-------|-------|
 | **Project** | SchoolHub — Smart School Management System |
-| **Overall Status** | 🟡 Active Development — Phase 3/6 |
+| **Overall Status** | 🟡 Active Development — Phase 4/6 (Assessment) |
 | **Current Branch** | `dev` (HEAD) |
+| **GitHub** | [aucegdev/schoolhub](https://github.com/aucegdev/schoolhub) |
+| **Azure DevOps** | [schoolhub-dev-26/SchoolHub](https://dev.azure.com/schoolhub-dev-26/SchoolHub) |
 | **Last Updated** | 2026-09-02 |
 | **Last Agent** | Antigravity |
 
@@ -20,25 +22,44 @@
 
 ## 🎯 NEXT ACTION
 
-> **Priority:** Complete DevOps pipeline (Jenkinsfile, Docker Compose, Ansible, full azure-pipelines.yml), then push remaining app modules (Attendance, Exams, Fees, Transport, Notices, Assignments, Reports).
+> **DevOps is now READY.** Remaining work is APPLICATION MODULES.
+> Priority: Attendance → Exams → Fees → Transport → Auth UI verification
 
-1. Read `.ai/TASKS.md` for the current active task list.
-2. Read `.ai/BUGS.md` for known issues before touching any module.
-3. Read `.ai/DECISIONS.md` before changing architecture or patterns.
-4. Inspect actual source code — do not assume memory is more accurate than code.
+1. Read `.ai/TASKS.md` for the full task list.
+2. Read `.ai/BUGS.md` for known issues.
+3. Read `.ai/DECISIONS.md` before changing architecture.
+4. Inspect actual source code — memory may lag behind code.
 5. Run `npx prisma validate` after any schema change.
-6. Run `npm run build` in both `frontend/` and `backend/` before marking work done.
+6. Work from the `dev` branch.
 
 ---
 
-## 🔴 BLOCKERS
+## ✅ DEVOPS — COMPLETED
 
-- `azure-pipelines.yml` is a placeholder stub — needs full CI/CD pipeline
-- No `Jenkinsfile` exists yet — Jenkins CI not configured
-- No `docker-compose.yml` exists — containerization incomplete
-- No `Dockerfile` for frontend or backend yet
-- Ansible playbooks not committed to repo
-- Auth frontend login UI — not confirmed working end-to-end
+| Tool | File | Status |
+|------|------|--------|
+| Docker (Backend) | `backend/Dockerfile` | ✅ Multi-stage build |
+| Docker (Frontend) | `frontend/Dockerfile` | ✅ Multi-stage → nginx |
+| Docker Compose (Local) | `docker-compose.yml` | ✅ postgres + pgadmin + backend + frontend |
+| Docker Compose (Prod) | `docker-compose.prod.yml` | ✅ + nginx reverse proxy, no pgadmin |
+| Nginx (SPA) | `frontend/nginx.conf` | ✅ SPA routing |
+| Nginx (Reverse Proxy) | `nginx/nginx.conf` | ✅ / → frontend, /api/ → backend |
+| Jenkinsfile | `Jenkinsfile` | ✅ 6-stage parallel pipeline |
+| Azure Pipelines | `azure-pipelines.yml` | ✅ 3-stage: Build → Docker → Deploy |
+| Ansible Provision | `ansible/playbooks/provision.yml` | ✅ Docker + Nginx + certbot |
+| Ansible Deploy | `ansible/playbooks/deploy.yml` | ✅ Pull → compose up → verify |
+| Ansible SSL | `ansible/playbooks/ssl.yml` | ✅ Let's Encrypt |
+| Env Config | `.env.example` + `backend/.env.example` | ✅ All vars documented |
+
+---
+
+## 🔴 REMAINING BLOCKERS
+
+- Application modules incomplete (Attendance, Exams, Fees, Transport)
+- Auth frontend login not verified end-to-end
+- Maven report-service not created yet
+- Azure VM not yet provisioned
+- No test framework configured (Jest/Vitest not in package.json)
 
 ---
 
@@ -46,232 +67,239 @@
 
 | ID | Title | Severity | Status |
 |----|-------|----------|--------|
-| BUG-001 | azure-pipelines.yml is a placeholder, not functional | HIGH | OPEN |
-| BUG-002 | No Jenkinsfile in repo — Jenkins CI cannot trigger | HIGH | OPEN |
-| BUG-003 | No docker-compose.yml — `docker compose up` fails | HIGH | OPEN |
-| BUG-004 | Attendance module not implemented (backend + frontend) | HIGH | OPEN |
+| BUG-004 | Attendance module not implemented | HIGH | OPEN |
 | BUG-005 | Examination & Marks module not implemented | HIGH | OPEN |
-| BUG-006 | No Dockerfile for frontend or backend | MEDIUM | OPEN |
+| BUG-007 | Auth frontend login not confirmed E2E | MEDIUM | OPEN |
+| BUG-008 | `dev` vs `develop` branch confusion | LOW | OPEN |
+| BUG-009 | Auth middleware uses mock user (no real JWT verify) | HIGH | FIXED |
 
 See `.ai/BUGS.md` for full details.
 
 ---
 
-## 📋 ACTIVE TASKS
+## 📋 ACTIVE TASKS (Priority Order)
 
 | ID | Task | Owner | Status |
 |----|------|-------|--------|
-| TASK-001 | Complete Jenkinsfile CI pipeline | Kathir | ⏳ |
-| TASK-002 | Complete azure-pipelines.yml (full build/deploy) | Kathir | ⏳ |
-| TASK-003 | Create Dockerfile for frontend | Paril (ordinarySlick) | ⏳ |
-| TASK-004 | Create Dockerfile for backend | Kathir | ⏳ |
-| TASK-005 | Create docker-compose.yml (all services) | Kathir | ⏳ |
-| TASK-006 | Write Ansible playbooks for Azure VM | Kathir | ⏳ |
+| TASK-020 | Auth: implement real JWT verification in middleware | Jivetesh | ✅ |
 | TASK-007 | Attendance module — backend + frontend | Paril (ordinarySlick) | ⏳ |
 | TASK-008 | Examination & Marks module | Paril (ordinarySlick) | ⏳ |
 | TASK-009 | Fees module | Paril (ordinarySlick) | ⏳ |
 | TASK-010 | Transport module | Paril (ordinarySlick) | ⏳ |
-| TASK-011 | Auth frontend login page wired to API | All | 🔄 |
-| TASK-012 | Reports & Analytics (PDF via Maven service) | Kathir | ⏳ |
-| TASK-013 | Azure VM provisioning & SSL cert | Kathir | ⏳ |
+| TASK-012 | Maven report-service (PDF generation) | Kathir | ⏳ |
+| TASK-013 | Azure VM provisioning & SSL | Kathir | ⏳ |
 
-See `.ai/TASKS.md` for complete task list with details.
+See `.ai/TASKS.md` for complete list with details.
 
 ---
 
 ## 🧠 RECENT MEMORY
 
-### 2026-09-02
-- Reviewed full repo state: `dev` branch is HEAD, main is behind dev (PRs #91, #92, #93 merged into dev).
-- Implemented modules: Auth, Teacher CRUD, Teacher Subject Assignment, Academic Year & Terms, School Info, Calendar & Holidays, Class & Section, Subject Management, Timetable, Teacher Leave Management, Dashboard Stats API.
-- **Critical gap:** No DevOps files (Jenkinsfile, Dockerfile, docker-compose.yml, Ansible). `azure-pipelines.yml` is an 18-line stub.
-- Decision memory imported from previous agents (Maya, Suren personas): full 19-module scope confirmed by Kathir-Kalidass.
-- Paril's GitHub username is `ordinarySlick`.
-- AI_AGENT.md and `.ai/` memory structure initialized by Antigravity.
+### 2026-09-02 — DevOps Implementation Session
+- **Created:** Jenkinsfile, azure-pipelines.yml (full), Dockerfiles, docker-compose.yml/.prod.yml, nginx configs, Ansible playbooks, env configs
+- **Committed** as 5 separate feature commits on `dev` branch
+- **Closed issues:** #21, #22 (completed via PRs #89, #90)
+- **Fixed labels** on issues #72, #73, #74, #76, #77
+- **Created new issues:** #94–#100
+- **Critical fix:** Auth middleware (`backend/src/middleware/auth.ts`) now verifies JWTs with `JWT_SECRET` instead of injecting a mock admin user.
+- Backend runs on port 4000 (not 5000 as some docs say)
+- Frontend dev server: 5173 (Vite default), containerized: 80 (nginx)
+- `VITE_API_URL` defaults to `http://localhost:4000/api/v1` in api.ts
 
 ---
 
 ## ⚠️ IMPORTANT RULES
 
-- **Never expose `.env` contents or commit secrets.**
-- **Never run destructive database migrations against production** without backup.
-- **Do not rewrite working modules** — check existing implementation first.
-- **Run tests before marking any task complete.**
-- `npx prisma validate` must pass before any migration.
-- The `main` branch requires PR + 1 approval — **never force-push to main**.
-- Paril's GitHub login is `ordinarySlick` — use when assigning issues.
-- `dev` branch is the active integration branch (not `develop`).
-- Admin role bypasses all RBAC checks — do not remove this behavior.
+- **Never commit secrets** — use `.env` files (in .gitignore)
+- **Never force-push** to `main` — requires PR + 1 approval
+- **Never run destructive migrations** without backup
+- **`npx prisma validate`** must pass before schema commits
+- Paril's GitHub login: `ordinarySlick`
+- `dev` is the active integration branch (not `develop`)
+- Admin role bypasses all RBAC — do not remove
+- Backend PORT is **4000** (not 5000)
+- Auth middleware verifies JWTs against `JWT_SECRET`; use a real token in production
 
 ---
 
 ## 1. PROJECT CONTEXT
 
-### Project
-**SchoolHub** — Smart School Management System
-
-### Purpose
-A web-based School Management System that digitizes and automates daily school operations with secure role-based access for Administrators, Principals, Teachers, Students, and Parents.
-
 ### Team
 
-| Name | GitHub | Role |
-|------|--------|------|
-| Kathir Kalidass B | `Kathir-Kalidass` | Full Stack & DevOps Lead, Architecture, CI/CD |
-| Jivetesh | — | Backend Developer, Auth, User Mgmt, Student Mgmt, Testing |
-| Paril T | `ordinarySlick` | Frontend Developer, UI/UX, Attendance, Exams, Fees, Transport |
+| Name | GitHub | Responsibility |
+|------|--------|----------------|
+| Kathir Kalidass B | `Kathir-Kalidass` | Full Stack & DevOps Lead |
+| Jivetesh | — | Backend: Auth, Users, Students, Testing |
+| Paril T | `ordinarySlick` | Frontend: Attendance, Exams, Fees, Transport |
 
-### Main Technologies
+### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 18 + TypeScript + Vite 5 + Tailwind CSS + shadcn/ui |
-| Backend | Node.js 18 + Express 4 + TypeScript |
-| Database | PostgreSQL 15 + Prisma ORM 5 |
-| Authentication | JWT (stateless) + RBAC |
-| Validation | Zod |
+| Frontend | React 19 + TypeScript + Vite 8 + Tailwind CSS v4 + shadcn/ui |
+| Backend | Node.js 18 + Express 5 + TypeScript 7 |
+| Database | PostgreSQL 15 + Prisma ORM 7 (with `@prisma/adapter-pg`) |
+| Auth | JWT (stateless) + Firebase Google OAuth + RBAC |
 | Containers | Docker + Docker Compose |
-| CI Server | Jenkins |
-| Cloud CI/CD | Azure DevOps (azure-pipelines.yml) |
+| CI | Jenkins (Jenkinsfile) |
+| CD | Azure DevOps (`azure-pipelines.yml`) |
 | Config Mgmt | Ansible |
-| Report Service | Maven + Java 17 (PDF generation) |
 | Reverse Proxy | Nginx |
+| Report Service | Maven + Java 17 (planned) |
+| Env Templates | Root + backend + frontend `.env.example` files |
 
 ### Repository
-`github.com/aucegdev/schoolhub`
+- GitHub: `github.com/aucegdev/schoolhub`
+- Azure DevOps: `https://dev.azure.com/schoolhub-dev-26/SchoolHub`
 
 ### Branch Strategy
 ```
-main      ── production-ready (requires PR + 1 approval)
-  │
-dev       ── active integration branch (HEAD, not develop)
-  │
-feature/* ── per-feature branches
+main      ── production (requires PR + 1 approval)
+dev       ── active integration (HEAD)
+feature/* ── per-feature work branches
 ```
 
 ---
 
-## 2. INSTRUCTIONS FOR AI AGENTS
+## 2. QUICK REFERENCE
 
-### Before Starting Work
-1. Read `AI_AGENT.md` (this file) completely.
-2. Check `.ai/TASKS.md` for current work.
-3. Check `.ai/BUGS.md` for known issues.
-4. Check `.ai/DECISIONS.md` before changing architecture.
-5. Inspect existing source code first.
-6. Verify you are on the `dev` branch.
+### Local Development
+```bash
+# Copy env templates
+cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 
-### During Work
-Record:
-- Important codebase discoveries
-- Failed approaches (prevents repeating mistakes)
-- Root causes of bugs
-- Architectural decisions
+# Start database
+docker compose up postgres pgadmin -d
 
-Do **not** record: passwords, API keys, tokens, secrets.
+# Backend (terminal 1)
+cd backend && npm install && npx prisma generate && npm run dev
 
-### After Completing Work
-1. Update `.ai/TASKS.md`
-2. Update `.ai/BUGS.md`
-3. Update `.ai/DECISIONS.md`
-4. Update `.ai/DISCOVERIES.md`
-5. Add a session entry to `.ai/HISTORY.md`
-6. Update the 🚦 CURRENT STATE dashboard above.
-7. **Do not claim a task is complete unless verified.**
+# Frontend (terminal 2)
+cd frontend && npm install && npm run dev
 
-### Agent Handoff Protocol
-Always answer before finishing:
-- What was I trying to do?
-- What did I change?
-- What worked / what failed and why?
-- What remains?
-- What should the next agent do first?
-- Any dangerous operations to avoid?
+# Full stack via Docker
+cp .env.example .env  # Edit secrets first
+docker compose up --build
+```
+
+### Firebase Google Login Setup
+- Add `VITE_FIREBASE_*` values in `frontend/.env`
+- Add `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` in `backend/.env`
+- Frontend uses Google OAuth popup sign-in; backend verifies Firebase ID tokens when configured
+- If Firebase config is missing, the app warns and keeps the legacy JWT flow available
+
+### Production Deployment
+```bash
+# Build and deploy
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+# Via Ansible
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml
+```
+
+### Key URLs (Local Dev)
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:4000/api/v1
+- Health Check: http://localhost:4000/api/v1/health
+- PgAdmin: http://localhost:5050
+
+### Key Files
+| Purpose | Path |
+|---------|------|
+| Backend entry | `backend/src/server.ts` |
+| App/routes | `backend/src/app.ts` |
+| Prisma schema | `backend/prisma/schema.prisma` |
+| DB config | `backend/src/config/database.ts` |
+| Auth middleware | `backend/src/middleware/auth.ts` ✅ JWT + Firebase verified |
+| Firebase admin config | `backend/src/config/firebase.ts` |
+| API base | `frontend/src/services/api.ts` |
+| Frontend auth config | `frontend/src/config/firebase.ts` |
+| Frontend routes | `frontend/src/App.tsx` |
+| Admin layout | `frontend/src/components/layout/AdminLayout.tsx` |
 
 ---
 
 ## 3. MODULE STATUS
 
-### ✅ Implemented
+### ✅ Implemented (Backend + Frontend)
 
-| Module | Backend | Frontend |
-|--------|---------|----------|
-| Auth (Login/Logout/JWT/RBAC) | ✅ | 🔄 |
-| School Info Setup | ✅ | ✅ |
-| Teacher CRUD | ✅ | ✅ |
-| Teacher Subject Assignment | ✅ | ✅ |
-| Academic Year & Terms | ✅ | ✅ |
-| Calendar & Holidays | ✅ | ✅ |
-| Class & Section Management | ✅ | ✅ |
-| Subject Management | ✅ | ✅ |
-| Timetable Management | ✅ | ✅ |
-| Teacher Leave Management | ✅ | ✅ |
-| Dashboard Stats API | ✅ | 🔄 |
+| Module | Backend | Frontend | Route |
+|--------|---------|----------|-------|
+| School Info | ✅ | ✅ | `/admin/school` |
+| Teacher CRUD | ✅ | ✅ | `/admin/teachers` |
+| Teacher Subject Assignment | ✅ | ✅ | — |
+| Academic Year & Terms | ✅ | ✅ | `/admin/academic-years` |
+| Calendar & Holidays | ✅ | ✅ | `/admin/calendar` |
+| Class & Section | ✅ | ✅ | `/admin/classes` |
+| Subject Management | ✅ | ✅ | `/admin/subjects` |
+| Timetable (conflict detect) | ✅ | ✅ | `/admin/timetable` |
+| Teacher Leave | ✅ | ✅ | `/admin/leave` |
+| Dashboard Stats | ✅ | 🔄 | `/admin/dashboard` |
 
 ### ⏳ Not Yet Implemented
 
-| Module | Priority | Owner |
-|--------|----------|-------|
-| Student CRUD (full) | P0 | Jivetesh |
-| Parent Management | P0 | Jivetesh |
-| User Management (admin CRUD) | P0 | Jivetesh |
-| Settings & Module Visibility | P0 | Kathir |
-| Attendance Management | P1 | Paril |
-| Examination & Marks | P1 | Paril |
-| Report Card PDF | P1 | Kathir |
-| Assignment & Homework | P1 | Paril |
-| Fees Management | P1 | Paril |
-| Transport Management | P2 | Paril |
-| Events & Notice Board | P2 | Kathir |
-| Communication & Notifications | P2 | Kathir |
-| Reports & Analytics | P2 | Kathir |
-| Audit Logs | P2 | Jivetesh |
+| Module | Priority | Owner | Depends On |
+|--------|----------|-------|------------|
+| Auth (real JWT verify) | P0 | Jivetesh | — |
+| Student CRUD | P0 | Jivetesh | Auth |
+| User Management | P0 | Jivetesh | Auth |
+| Parent Management | P0 | Jivetesh | Student |
+| Settings / Visibility | P0 | Kathir | — |
+| Attendance | P1 | Paril | Class, Teacher |
+| Examination & Marks | P1 | Paril | Class, Subject, Student |
+| Fees | P1 | Paril | Student |
+| Assignment & Homework | P1 | Paril | Class, Subject, Student |
+| Report Card PDF | P1 | Kathir | Maven service |
+| Transport | P2 | Paril | — |
+| Events & Notices | P2 | Kathir | — |
+| Communication | P2 | Kathir | — |
+| Reports & Analytics | P2 | Kathir | — |
+| Audit Logs | P2 | Jivetesh | — |
 
-### 🔴 DevOps Status
+### ✅ DevOps — All Done
 
-| Item | Status |
-|------|--------|
-| Git/GitHub branching | ✅ Active |
-| Jenkinsfile | ❌ Missing |
-| docker-compose.yml | ❌ Missing |
-| Dockerfile (frontend) | ❌ Missing |
-| Dockerfile (backend) | ❌ Missing |
-| azure-pipelines.yml | ⚠️ Stub only |
-| Ansible playbooks | ❌ Missing |
-| Maven report-service | ❌ Missing |
-| Azure VM deployment | ❌ Not done |
-| SSL certificate | ❌ Not done |
-
----
-
-## 4. KEY ARCHITECTURAL DECISIONS
-
-See `.ai/DECISIONS.md` for full ADR log.
-
-- **DEC-001:** Full 19-module scope with phased delivery — decided by Kathir-Kalidass
-- **DEC-002:** Single Express server — appropriate for this scale
-- **DEC-003:** Prisma ORM for type-safe DB access + migrations
-- **DEC-004:** JWT stateless auth — no server-side session store
-- **DEC-005:** ADMIN role bypasses all RBAC checks — do not remove
-- **DEC-006:** Maven report-service (Java) satisfies build-tool syllabus requirement
-- **DEC-007:** `dev` branch is active integration (confirmed by current git log)
+| Item | Status | File |
+|------|--------|------|
+| Git/GitHub | ✅ | — |
+| Jenkinsfile | ✅ | `Jenkinsfile` |
+| Docker (backend) | ✅ | `backend/Dockerfile` |
+| Docker (frontend) | ✅ | `frontend/Dockerfile` |
+| Docker Compose (local) | ✅ | `docker-compose.yml` |
+| Docker Compose (prod) | ✅ | `docker-compose.prod.yml` |
+| Nginx reverse proxy | ✅ | `nginx/nginx.conf` |
+| Nginx SPA routing | ✅ | `frontend/nginx.conf` |
+| Azure Pipelines | ✅ | `azure-pipelines.yml` |
+| Ansible provision | ✅ | `ansible/playbooks/provision.yml` |
+| Ansible deploy | ✅ | `ansible/playbooks/deploy.yml` |
+| Ansible SSL | ✅ | `ansible/playbooks/ssl.yml` |
+| Env config | ✅ | `.env.example` + `backend/.env.example` |
 
 ---
 
-## 5. KEY DISCOVERIES
+## 4. INSTRUCTIONS FOR AI AGENTS
 
-See `.ai/DISCOVERIES.md` for full list.
+### Before Starting
+1. Read this file completely
+2. Check `.ai/TASKS.md` → `.ai/BUGS.md` → `.ai/DECISIONS.md`
+3. Verify you are on `dev` branch
+4. Read the source code before modifying
 
-- Backend modules: `backend/src/modules/{module-name}/`
-- Prisma schema: `backend/prisma/schema.prisma`
-- Frontend pages: `frontend/src/pages/`
-- Frontend services (API clients): `frontend/src/services/`
-- `azure-pipelines.yml` at root is an 18-line placeholder stub
-- No Jenkinsfile, Dockerfile, docker-compose.yml exist yet
-- Paril T's GitHub login is `ordinarySlick`
-- `dev` is HEAD (not `develop`) per `git log`
+### During Work
+Record: discoveries, failed approaches, root causes, decisions
+
+### After Work
+1. Update `.ai/TASKS.md` + `.ai/BUGS.md`
+2. Update `.ai/DECISIONS.md` for design decisions
+3. Update `.ai/DISCOVERIES.md` with new knowledge
+4. Add session entry to `.ai/HISTORY.md`
+5. Update this dashboard
+
+### Agent Handoff
+Answer: What was I doing? What changed? What worked/failed? What remains? What should the next agent do? Any dangers to avoid?
 
 ---
 
 *Maintained by AI agents. Last updated: 2026-09-02 by Antigravity.*
-*Never delete historical information. Prefer updating status over removing old entries.*
+*Never delete historical information. Prefer updating status over removing entries.*

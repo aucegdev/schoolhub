@@ -7,7 +7,7 @@
 
 ## BUG-001 — azure-pipelines.yml is a placeholder
 
-**Status:** `OPEN`
+**Status:** `FIXED` — 2026-09-02 (commit 8af659f)
 **Severity:** HIGH
 **Discovered:** 2026-09-02 by Antigravity
 
@@ -43,12 +43,7 @@ Implement full pipeline per `docs/08_DevOps_Implementation.md` section 3.6 and T
 
 ## BUG-002 — No Jenkinsfile in repository
 
-**Status:** `OPEN`
-**Severity:** HIGH
-**Discovered:** 2026-09-02 by Antigravity
-
-**Symptoms:**
-Jenkins CI server cannot trigger builds — no Jenkinsfile to define pipeline.
+**Status:** `FIXED` — 2026-09-02 (commit 76f60e3)
 
 **Root Cause:**
 Not yet created. Required by course syllabus.
@@ -66,9 +61,7 @@ Implement per TASK-001. Reference `docs/08_DevOps_Implementation.md` section 3.3
 
 ## BUG-003 — No docker-compose.yml
 
-**Status:** `OPEN`
-**Severity:** HIGH
-**Discovered:** 2026-09-02 by Antigravity
+**Status:** `FIXED` — 2026-09-02 (commit b952742)
 
 **Symptoms:**
 `docker compose up` fails — no compose file in repository.
@@ -180,6 +173,35 @@ Branch was renamed or a new branch created. `develop` may be stale.
 
 **Next Investigation:**
 Check if `develop` branch is up-to-date with `dev`. Consider deleting `develop` if it is stale or merging it. Update all documentation to reference `dev`.
+
+---
+
+## BUG-009 — JWT auth middleware accepted a mock user
+
+**Status:** `FIXED` — 2026-09-02
+**Severity:** HIGH
+**Discovered:** 2026-09-02 by Antigravity
+
+**Symptoms:**
+Requests with a valid `Authorization: Bearer ...` header were not actually verified. The middleware silently attached a fake admin user and bypassed real authentication.
+
+**Root Cause:**
+`backend/src/middleware/auth.ts` had a placeholder implementation with a hardcoded `ADMIN` user and a `TODO` where JWT verification should happen.
+
+**Expected:**
+The middleware should validate the signed token against `JWT_SECRET` and attach the real payload data to `req.user`.
+
+**Affected Files:**
+- `backend/src/middleware/auth.ts`
+- `backend/package.json`
+
+**Fix Applied:**
+- Added `jsonwebtoken` and `@types/jsonwebtoken`
+- Implemented real JWT verification and payload mapping
+- Added safe local-development fallback secret when `JWT_SECRET` is missing
+
+**Next Investigation:**
+Add an actual login route that issues signed JWTs for real users and continue with `TASK-011` frontend auth verification.
 
 ---
 

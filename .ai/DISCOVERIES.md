@@ -165,4 +165,23 @@ P0 = Must have for demo. P1 = Should have. P2 = Nice to have.
 
 ---
 
+## DISC-011 — Firebase Google Auth Configuration
+
+**Discovered:** 2026-09-02 during auth hardening
+
+The web app now supports Firebase Google sign-in for local and Azure deployments, but it requires the following environment values to be populated:
+
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+
+On the backend, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` enable Firebase ID-token verification. The auth middleware supports both Firebase and the existing JWT flow, so the app can remain resilient during transition.
+
+**Note:** Firebase config is optional for local JWT-only development but required for full Google login support.
+
+---
+
 *Add new discoveries as you work. Reference DISC-IDs in TASKS.md and BUGS.md.*

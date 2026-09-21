@@ -32,3 +32,16 @@ export async function enterMarks(examId: string, marks: { studentId: string; mar
   const { data } = await api.post(`/exams/${examId}/marks`, { marks });
   return data.data;
 }
+
+/**
+ * Download a PDF report card for a student under a given exam.
+ * Returns the binary Blob so the caller can save it via `URL.createObjectURL`.
+ */
+export async function downloadReportCard(examId: string, studentId: string, academicYear?: string): Promise<Blob> {
+  const response = await api.post(
+    `/exams/${examId}/report-card/${studentId}`,
+    { academicYear: academicYear || "2025-2026" },
+    { responseType: "blob" }
+  );
+  return response.data;
+}

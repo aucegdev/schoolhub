@@ -10,5 +10,6 @@ router.get("/", controller.listExams);
 router.get("/:id", controller.getExam);
 router.post("/", controller.createExam);
 router.post("/:id/marks", controller.enterMarks);
+router.post("/:examId/report-card/:studentId", controller.generateReportCard);
 
 export default router;

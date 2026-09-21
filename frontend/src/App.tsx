@@ -7,6 +7,8 @@ import CalendarHolidays from "./pages/admin/CalendarHolidays";
 import TeacherManagement from "./pages/admin/TeacherManagement";
 import TimetableManagement from "./pages/admin/TimetableManagement";
 import LeaveManagement from "./pages/admin/LeaveManagement";
+import SettingsPage from "./pages/admin/settings/SettingsPage";
+import TransportPage from "./pages/admin/transport/TransportPage";
 import SubjectManagement from "./pages/admin/SubjectManagement";
 import ClassManagement from "./pages/admin/ClassManagement";
 import StudentManagement from "./pages/admin/StudentManagement";
@@ -51,6 +53,8 @@ function App() {
           <Route path="exams" element={<ExamManagement />} />
           <Route path="fees" element={<FeesManagement />} />
           <Route path="leave" element={<LeaveManagement />} />
+          <Route path="transport" element={<TransportPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

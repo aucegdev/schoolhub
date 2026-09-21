@@ -31,6 +31,8 @@ export default function AdminLayout() {
             <li><a href="/admin/exams">Examinations</a></li>
             <li><a href="/admin/fees">Fees & Billing</a></li>
             <li><a href="/admin/leave">Leave Requests</a></li>
+          <li><a href="/admin/transport">Transport</a></li>
+          <li><a href="/admin/settings">Settings</a></li>
           </ul>
         </nav>
         <button type="button" onClick={handleLogout} style={{ marginTop: 16, padding: "10px 12px", borderRadius: 10, border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer" }}>

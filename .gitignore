@@ -1,37 +1,34 @@
-# Environment files — never commit secrets
-.env
-.env.local
-.env.production
-.env.test
-backend/.env
-frontend/.env.local
-frontend/.env.production
 
 # Build outputs
-dist/
-build/
-
-# Node modules
-node_modules/
-
-# Logs
-*.log
-.DS_Store
-coverage/
-backend/generated/
-Thesis_Title/.tmp_preview/
-
+# Environment files — never commit secrets
 # LaTeX build artifacts
+# Logs
+# Node modules
+# Windows Zone.Identifier files
 *.aux
 *.bbl
 *.blg
 *.fdb_latexmk
 *.fls
 *.lof
+*.log
 *.lot
 *.out
-*.toc
 *.pdf
-
-# Windows Zone.Identifier files
+*.toc
 *:Zone.Identifier
+.DS_Store
+.env
+.env.local
+.env.production
+.env.test
+Thesis_Title/.tmp_preview/
+backend/.env
+backend/generated/
+build/
+coverage/
+dist/
+frontend/.env.local
+frontend/.env.production
+node_modules/
+report-service/target/

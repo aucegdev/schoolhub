@@ -42,3 +42,21 @@ export async function recordFeePayment(payment: Partial<FeePayment>): Promise<Fe
   const { data } = await api.post("/fees/payments", payment);
   return data.data;
 }
+
+export interface FeeDues {
+  student: { id: string; firstName: string; lastName: string; admissionNo: string };
+  dues: Array<{ feeStructure: FeeStructure; paid: number; outstanding: number; status: string }>;
+  totalDue: number;
+  totalPaid: number;
+  totalAmount: number;
+}
+
+export async function getStudentDues(studentId: string): Promise<FeeDues> {
+  const { data } = await api.get(`/fees/dues/student/${studentId}`);
+  return data.data;
+}
+
+export async function getClassDuesSummary(classId: string) {
+  const { data } = await api.get(`/fees/dues/class/${classId}`);
+  return data.data;
+}

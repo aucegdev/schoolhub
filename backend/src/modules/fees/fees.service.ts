@@ -68,3 +68,58 @@ export async function listPayments(studentId?: string, feeStructureId?: string) 
     orderBy: { paymentDate: "desc" },
   });
 }
+
+// --- Reports & Dues ---
+
+export async function getStudentDues(studentId: string) {
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+    include: {
+      class: { include: { sections: { include: { students: true } } } },
+      feePayments: { include: { feeStructure: true } },
+    },
+  });
+  if (!student) return null;
+
+  // Get fee structures applicable to the student's classId (or classId of sections they belong to)
+  const classIds = new Set<string>();
+  if (student.classId) classIds.add(student.classId);
+  student.class?.sections?.forEach(s => { if (s.classId) classIds.add(s.classId); });
+
+  const structures = await prisma.feeStructure.findMany({ where: { classId: { in: Array.from(classIds) } }, orderBy: { dueDate: "asc" } });
+
+  const dues = structures.map(structure => {
+    const paidRecord = student.feePayments.find(p => p.feeStructureId === structure.id);
+    const paid = paidRecord?.amountPaid || 0;
+    return {
+      feeStructure: structure,
+      paid,
+      outstanding: Math.max(0, structure.amount - paid),
+      status: paid >= structure.amount ? "PAID" : paid > 0 ? "PARTIAL" : "PENDING",
+    };
+  });
+
+  const totalDue = dues.reduce((s, d) => s + d.outstanding, 0);
+  const totalPaid = dues.reduce((s, d) => s + d.paid, 0);
+  const totalAmount = dues.reduce((s, d) => s + (d.feeStructure.amount || 0), 0);
+
+  return { student: { id: student.id, firstName: student.firstName, lastName: student.lastName, admissionNo: student.admissionNo }, dues, totalDue, totalPaid, totalAmount };
+}
+
+export async function getClassDuesSummary(classId: string) {
+  const structures = await prisma.feeStructure.findMany({ where: { classId } });
+  const students = await prisma.student.findMany({ where: { classId, status: "ACTIVE" } });
+
+  const summary = students.map(s => {
+    const payments = s.feePayments || [];
+    const totalPaid = payments.reduce((sum: number, p: any) => sum + p.amountPaid, 0);
+    const totalDue = structures.reduce((sum, st) => sum + st.amount, 0);
+    const outstanding = Math.max(0, totalDue - totalPaid);
+    return { studentId: s.id, studentName: `${s.firstName} ${s.lastName}`, admissionNo: s.admissionNo, totalDue, totalPaid, outstanding, status: outstanding === 0 ? "PAID" : totalPaid > 0 ? "PARTIAL" : "PENDING" };
+  });
+
+  const totalCollected = summary.reduce((s, x) => s + x.totalPaid, 0);
+  const totalOutstanding = summary.reduce((s, x) => s + x.outstanding, 0);
+  const totalExpected = summary.reduce((s, x) => s + x.totalDue, 0);
+  return { students: summary, totalCollected, totalOutstanding, totalExpected };
+}

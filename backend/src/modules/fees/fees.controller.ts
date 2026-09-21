@@ -39,3 +39,18 @@ export async function listPayments(req: Request, res: Response, next: NextFuncti
     next(error);
   }
 }
+
+export async function getStudentDues(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = await feeService.getStudentDues(req.params.studentId);
+    if (!data) { res.status(404).json({ success: false, message: "Student not found" }); return; }
+    res.json({ success: true, data });
+  } catch (error) { next(error); }
+}
+
+export async function getClassDuesSummary(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = await feeService.getClassDuesSummary(req.params.classId);
+    res.json({ success: true, data });
+  } catch (error) { next(error); }
+}

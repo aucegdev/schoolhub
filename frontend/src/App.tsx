@@ -9,6 +9,7 @@ import TimetableManagement from "./pages/admin/TimetableManagement";
 import LeaveManagement from "./pages/admin/LeaveManagement";
 import SettingsPage from "./pages/admin/settings/SettingsPage";
 import TransportPage from "./pages/admin/transport/TransportPage";
+import ReportsPage from "./pages/admin/reports/ReportsPage";
 import NoticesPage from "./pages/admin/notices/NoticesPage";
 import EventsPage from "./pages/admin/events/EventsPage";
 import CommunicationPage from "./pages/admin/communication/CommunicationPage";
@@ -61,6 +62,7 @@ function App() {
           <Route path="notices" element={<NoticesPage />} />
           <Route path="events" element={<EventsPage />} />
           <Route path="communication" element={<CommunicationPage />} />
+          <Route path="reports" element={<ReportsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

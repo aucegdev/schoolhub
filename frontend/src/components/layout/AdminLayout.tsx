@@ -34,6 +34,7 @@ export default function AdminLayout() {
             <li><a href="/admin/notices">Notices & Announcements</a></li>
             <li><a href="/admin/events">Events</a></li>
             <li><a href="/admin/communication">Communication</a></li>
+            <li><a href="/admin/reports">Reports & Analytics</a></li>
             <li><a href="/admin/transport">Transport</a></li>
             <li><a href="/admin/settings">Settings</a></li>
           </ul>

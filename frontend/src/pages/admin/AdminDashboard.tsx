@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, School, Layers, BookOpen, CalendarClock, CalendarDays, Loader2 } from "lucide-react";
+import { Users, School, Layers, BookOpen, CalendarClock, CalendarDays, Loader2, GraduationCap, FileText, Bus, Bell } from "lucide-react";
 import { getStats, type DashboardStats } from "../../services/stats";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -47,15 +47,20 @@ export default function AdminDashboard() {
     );
   }
 
-  const { totals, recentTeachers, classesWithSections } = stats;
+  const { totals, recentTeachers, recentStudents, classesWithSections, upcomingEvents, recentNotices } = stats;
   const cards = [
-    { label: "Total Teachers", value: totals.teachers, icon: Users, color: "bg-blue-500" },
-    { label: "Active Teachers", value: totals.activeTeachers, icon: Users, color: "bg-green-500" },
+    { label: "Students", value: totals.students, icon: GraduationCap, color: "bg-violet-500" },
+    { label: "Active Students", value: totals.activeStudents, icon: Users, color: "bg-green-500" },
+    { label: "Teachers", value: totals.teachers, icon: Users, color: "bg-blue-500" },
     { label: "Classes", value: totals.classes, icon: School, color: "bg-purple-500" },
     { label: "Sections", value: totals.sections, icon: Layers, color: "bg-amber-500" },
     { label: "Subjects", value: totals.subjects, icon: BookOpen, color: "bg-cyan-500" },
-    { label: "Timetable Entries", value: totals.timetableEntries, icon: CalendarClock, color: "bg-rose-500" },
-    { label: "Holidays", value: totals.holidays, icon: CalendarDays, color: "bg-indigo-500" },
+    { label: "Timetable", value: totals.timetableEntries, icon: CalendarClock, color: "bg-rose-500" },
+    { label: "Exams", value: totals.exams, icon: FileText, color: "bg-indigo-500" },
+    { label: "Pending Leaves", value: totals.pendingLeaves, icon: CalendarDays, color: "bg-orange-500" },
+    { label: "Notifications", value: totals.unreadNotifications, icon: Bell, color: "bg-pink-500" },
+    { label: "Vehicles", value: totals.vehicles, icon: Bus, color: "bg-teal-500" },
+    { label: "Routes", value: totals.routes, icon: Bus, color: "bg-sky-500" },
   ];
 
   return (
@@ -80,7 +85,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Teachers */}
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
@@ -108,23 +113,64 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Classes with Sections */}
+        {/* Recent Students */}
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
-            <h2 className="font-semibold text-slate-900">Classes & Sections</h2>
+            <h2 className="font-semibold text-slate-900">Recent Students</h2>
           </div>
-          {classesWithSections.length === 0 ? (
-            <p className="text-sm text-slate-400 px-4 py-8 text-center">No classes yet</p>
+          {recentStudents.length === 0 ? (
+            <p className="text-sm text-slate-400 px-4 py-8 text-center">No students yet</p>
           ) : (
             <ul className="divide-y divide-slate-50">
-              {classesWithSections.map((c) => (
-                <li key={c.id} className="px-4 py-3 flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-800">{c.name}</span>
-                  <span className="text-xs text-slate-500">{c._count.sections} sections</span>
+              {recentStudents.map((s) => (
+                <li key={s.id} className="px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">{s.firstName} {s.lastName}</p>
+                    <p className="text-xs text-slate-400">{s.admissionNo}</p>
+                  </div>
+                  {s.class?.name && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{s.class.name}</span>}
                 </li>
               ))}
             </ul>
           )}
+        </div>
+
+        {/* Upcoming Events & Notices */}
+        <div className="space-y-6">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-900">Upcoming Events</h2>
+            </div>
+            {upcomingEvents.length === 0 ? (
+              <p className="text-sm text-slate-400 px-4 py-6 text-center">No upcoming events</p>
+            ) : (
+              <ul className="divide-y divide-slate-50">
+                {upcomingEvents.map((e) => (
+                  <li key={e.id} className="px-4 py-3">
+                    <p className="text-sm font-medium text-slate-800">{e.title}</p>
+                    <p className="text-xs text-slate-400">{new Date(e.startDate).toLocaleDateString()}{e.location && ` · ${e.location}`}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100">
+              <h2 className="font-semibold text-slate-900">Recent Notices</h2>
+            </div>
+            {recentNotices.length === 0 ? (
+              <p className="text-sm text-slate-400 px-4 py-6 text-center">No notices</p>
+            ) : (
+              <ul className="divide-y divide-slate-50">
+                {recentNotices.map((n) => (
+                  <li key={n.id} className="px-4 py-3">
+                    <p className="text-sm font-medium text-slate-800">{n.title}</p>
+                    <p className="text-xs text-slate-400">{new Date(n.createdAt).toLocaleDateString()} · <span className="text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">{n.target}</span></p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>

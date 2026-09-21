@@ -47,7 +47,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const { totals, recentTeachers, recentStudents, classesWithSections, upcomingEvents, recentNotices } = stats;
+  const { totals, recentTeachers, recentStudents, upcomingEvents, recentNotices } = stats;
   const cards = [
     { label: "Students", value: totals.students, icon: GraduationCap, color: "bg-violet-500" },
     { label: "Active Students", value: totals.activeStudents, icon: Users, color: "bg-green-500" },

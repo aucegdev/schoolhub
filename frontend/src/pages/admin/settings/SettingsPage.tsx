@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Settings, Save, RefreshCw, Shield, Bell, Clock, DollarSign, Globe } from "lucide-react";
-import { listSettings, setSetting, updateSetting, seedSettings, type Setting } from "../../services/settings";
+import { listSettings, updateSetting, seedSettings, type Setting } from "../../../services/settings";
 
 const CATEGORIES = [
   { key: "GENERAL", label: "General", icon: Settings },

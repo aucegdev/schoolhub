@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, BookOpen, Calendar, Award, CheckSquare, FileDown } from "lucide-react";
 import { listClasses, type ClassData } from "../../services/class";
 import { listSubjects, type SubjectData } from "../../services/subject";
-import { listExams, createExam, enterMarks, downloadReportCard, type Exam } from "../../services/examination";
+import { listExams, createExam, enterMarks, downloadReportCard, bulkReportCards, type Exam } from "../../services/examination";
 import { listStudents, type Student } from "../../services/student";
 
 export default function ExamManagement() {
@@ -15,25 +15,36 @@ export default function ExamManagement() {
 
   async function handleDownloadReport(exam: Exam, student?: Student) {
     try {
-      let blob: Blob;
-      if (student) {
-        blob = await downloadReportCard(exam.id, student.id);
+      if (student?.id) {
+        const blob = await downloadReportCard(exam.id, student.id);
+        downloadBlob(blob, `report_${student.admissionNo}_${exam.examType}.pdf`);
+        setMessage("Report card downloaded!");
       } else {
-        const res = await api.post(`/exams/${exam.id}/report-cards-bulk`, { academicYear: "2025-2026" }, { responseType: "blob" });
-        blob = res.data;
+        const results = await bulkReportCards(exam.id, "2025-2026");
+        if (!results || results.length === 0) {
+          setMessage("No report cards to download");
+          return;
+        }
+        for (const r of results) {
+          const blob = new Blob([r.pdf], { type: "application/pdf" });
+          downloadBlob(blob, `report_${r.admissionNo}_${exam.examType}.pdf`);
+        }
+        setMessage(`Downloaded ${results.length} report cards!`);
       }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = student ? `report_${student.admissionNo}_${exam.examType}.pdf` : `report_cards_${exam.examType}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      setMessage("Report card downloaded!");
     } catch {
       setMessage("Failed to download report card");
     }
+  }
+
+  function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
   const [students, setStudents] = useState<Student[]>([]);
   const [marksState, setMarksState] = useState<Record<string, number>>({});

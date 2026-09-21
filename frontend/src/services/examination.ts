@@ -37,6 +37,12 @@ export async function enterMarks(examId: string, marks: { studentId: string; mar
  * Download a PDF report card for a student under a given exam.
  * Returns the binary Blob so the caller can save it via `URL.createObjectURL`.
  */
+export interface BulkReportResult {
+  studentId: string;
+  admissionNo: string;
+  pdf: ArrayBuffer;
+}
+
 export async function downloadReportCard(examId: string, studentId: string, academicYear?: string): Promise<Blob> {
   const response = await api.post(
     `/exams/${examId}/report-card/${studentId}`,
@@ -46,11 +52,10 @@ export async function downloadReportCard(examId: string, studentId: string, acad
   return response.data;
 }
 
-export async function bulkReportCards(examId: string, academicYear?: string): Promise<Blob> {
+export async function bulkReportCards(examId: string, academicYear?: string): Promise<BulkReportResult[]> {
   const response = await api.post(
     `/exams/${examId}/report-cards-bulk`,
-    { academicYear: academicYear || "2025-2026" },
-    { responseType: "blob" }
+    { academicYear: academicYear || "2025-2026" }
   );
-  return response.data;
+  return response.data.data;
 }

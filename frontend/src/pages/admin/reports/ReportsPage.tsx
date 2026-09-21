@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { BarChart3, Users, DollarSign, TrendingUp, FileText, GraduationCap } from "lucide-react";
-import { listClasses, type ClassData } from "../../services/class";
-import { listStudents, type Student } from "../../services/student";
-import { listTeachers } from "../../services/teacher";
-import { getStudentDues, getClassDuesSummary, type FeeDues } from "../../services/fees";
-import { listExams, type Exam } from "../../services/examination";
-import { getAttendanceSummary, getAttendance } from "../../services/attendance";
+import { listClasses, type ClassData } from "../../../services/class";
+import { listStudents, type Student } from "../../../services/student";
+import { listTeachers } from "../../../services/teacher";
+import { getStudentDues, getClassDuesSummary, type FeeDues } from "../../../services/fees";
+import { listExams, type Exam } from "../../../services/examination";
+import { getAttendanceSummary } from "../../../services/attendance";
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "fees" | "attendance" | "exams">("overview");
@@ -119,7 +119,7 @@ export default function ReportsPage() {
           </div>
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5">
             <GraduationCap className="w-6 h-6 text-indigo-500 mb-2" />
-            <div className="text-2xl font-bold text-indigo-900">{students.filter(s => s.isActive).length}</div>
+            <div className="text-2xl font-bold text-indigo-900">{students.filter(s => s.status === "ACTIVE").length}</div>
             <div className="text-sm text-indigo-600">Active Students</div>
           </div>
           <div className="bg-orange-50 border border-orange-100 rounded-xl p-5">

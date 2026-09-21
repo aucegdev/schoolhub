@@ -45,3 +45,12 @@ export async function downloadReportCard(examId: string, studentId: string, acad
   );
   return response.data;
 }
+
+export async function bulkReportCards(examId: string, academicYear?: string): Promise<Blob> {
+  const response = await api.post(
+    `/exams/${examId}/report-cards-bulk`,
+    { academicYear: academicYear || "2025-2026" },
+    { responseType: "blob" }
+  );
+  return response.data;
+}

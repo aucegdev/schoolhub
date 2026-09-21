@@ -13,17 +13,24 @@ export default function ExamManagement() {
   const [isMarksModalOpen, setIsMarksModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
 
-  async function handleDownloadReport(exam: Exam, student: Student) {
+  async function handleDownloadReport(exam: Exam, student?: Student) {
     try {
-      const blob = await downloadReportCard(exam.id, student.id);
+      let blob: Blob;
+      if (student) {
+        blob = await downloadReportCard(exam.id, student.id);
+      } else {
+        const res = await api.post(`/exams/${exam.id}/report-cards-bulk`, { academicYear: "2025-2026" }, { responseType: "blob" });
+        blob = res.data;
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `report_${student.admissionNo}_${exam.examType}.pdf`;
+      a.download = student ? `report_${student.admissionNo}_${exam.examType}.pdf` : `report_cards_${exam.examType}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      setMessage("Report card downloaded!");
     } catch {
       setMessage("Failed to download report card");
     }
@@ -166,6 +173,15 @@ export default function ExamManagement() {
               >
                 <CheckSquare className="w-4 h-4" /> Enter / Edit Marks ({ex.marks?.length || 0})
               </button>
+
+              {ex.marks && ex.marks.length > 0 && (
+                <button
+                  onClick={() => handleDownloadReport(ex)}
+                  className="w-full flex items-center justify-center gap-2 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold transition"
+                >
+                  <FileDown className="w-4 h-4" /> Download All Report Cards (PDF)
+                </button>
+              )}
             </div>
           ))
         )}

@@ -22,6 +22,7 @@ import feesRoutes from "./modules/fees/fees.routes";
 import notificationRoutes from "./modules/notification/notification.routes";
 import settingsRoutes from "./modules/settings/settings.routes";
 import transportRoutes from "./modules/transport/transport.routes";
+import auditLogRoutes from "./modules/audit-log/audit-log.routes";
 
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -69,6 +70,7 @@ app.use("/api/v1/fees", feesRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/transport", transportRoutes);
+app.use("/api/v1/audit-log", auditLogRoutes);
 
 // Health check
 app.get("/api/v1/health", (_req, res) => {

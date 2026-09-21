@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Plus, BookOpen, Calendar, Award, CheckSquare } from "lucide-react";
+import { Plus, BookOpen, Calendar, Award, CheckSquare, FileDown } from "lucide-react";
 import { listClasses, type ClassData } from "../../services/class";
 import { listSubjects, type SubjectData } from "../../services/subject";
-import { listExams, createExam, enterMarks, type Exam } from "../../services/examination";
+import { listExams, createExam, enterMarks, downloadReportCard, type Exam } from "../../services/examination";
 import { listStudents, type Student } from "../../services/student";
 
 export default function ExamManagement() {
@@ -12,6 +12,22 @@ export default function ExamManagement() {
   const [isExamModalOpen, setIsExamModalOpen] = useState(false);
   const [isMarksModalOpen, setIsMarksModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+
+  async function handleDownloadReport(exam: Exam, student: Student) {
+    try {
+      const blob = await downloadReportCard(exam.id, student.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `report_${student.admissionNo}_${exam.examType}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      setMessage("Failed to download report card");
+    }
+  }
   const [students, setStudents] = useState<Student[]>([]);
   const [marksState, setMarksState] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");

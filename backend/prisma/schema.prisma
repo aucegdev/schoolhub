@@ -462,3 +462,61 @@ model AuditLog {
   userAgent   String?
   createdAt   DateTime @default(now())
 }
+
+enum NoticeTarget {
+  ALL
+  STUDENTS
+  TEACHERS
+  PARENTS
+  STAFF
+}
+
+model Notice {
+  id          String        @id @default(uuid())
+  title       String
+  content     String
+  priority    String        @default("NORMAL")  // NORMAL, URGENT, IMPORTANT
+  target      NoticeTarget  @default(ALL)
+  authorId    String?
+  publishedAt DateTime?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum EventType {
+  HOLIDAY
+  EXAM
+  MEETING
+  SPORTS
+  CULTURAL
+  GENERAL
+}
+
+model Event {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  eventType   EventType  @default(GENERAL)
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  targetRoles String?    // comma-separated roles
+  createdBy   String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  senderId     String
+  senderRole   String
+  recipientId  String?  // null = broadcast to all of a role
+  recipientRole String?
+  subject      String
+  body         String
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

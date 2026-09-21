@@ -44,11 +44,12 @@ export async function enterMarks(req: Request, res: Response, next: NextFunction
 
 export async function generateReportCard(req: Request, res: Response, next: NextFunction) {
   try {
-    const { examId, studentId } = req.params;
+    const examId = req.params.examId || req.params.id;
+    const studentId = req.params.studentId || req.params.id;
     const [exam, marks, student] = await Promise.all([
-      prisma.exam.findUnique({ where: { id: examId }, include: { subject: true } }),
-      prisma.examMark.findMany({ where: { examId }, include: { student: true } }),
-      prisma.student.findUnique({ where: { id: studentId }, include: { class: true, section: true } }),
+      prisma.exam.findUnique({ where: { id: examId as string }, include: { subject: true } as any }),
+      prisma.examMark.findMany({ where: { examId: examId as string }, include: { student: true } as any }),
+      prisma.student.findUnique({ where: { id: studentId as string }, include: { class: true, section: true } as any }),
     ]);
     if (!exam) { res.status(404).json({ success: false, message: "Exam not found" }); return; }
     if (!student) { res.status(404).json({ success: false, message: "Student not found" }); return; }
@@ -58,6 +59,10 @@ export async function generateReportCard(req: Request, res: Response, next: Next
     const percentage = totalMax > 0 ? (totalObtained / totalMax) * 100 : 0;
     const grade = percentage >= 90 ? "A+" : percentage >= 75 ? "A" : percentage >= 60 ? "B+" : percentage >= 45 ? "B" : "C";
 
+    const className = (student as any).class?.name || "";
+    const sectionName = (student as any).section?.name || "";
+    const examSubject = (exam as any).subject;
+
     const payload = {
       schoolName: process.env.SCHOOL_NAME || "SchoolHub School",
       schoolAddress: process.env.SCHOOL_ADDRESS || "",
@@ -66,13 +71,13 @@ export async function generateReportCard(req: Request, res: Response, next: Next
       admissionNo: student.admissionNo,
       rollNumber: student.rollNumber || "",
       studentName: `${student.firstName} ${student.lastName}`,
-      className: student.class?.name || "",
-      sectionName: student.section?.name || "",
+      className,
+      sectionName,
       guardianName: student.guardianName || "",
       dateOfBirth: student.dateOfBirth?.toISOString().split("T")[0] || "",
       subjects: marks.map((m) => ({
-        subjectName: exam.subject.name,
-        subjectCode: exam.subject.code || "",
+        subjectName: examSubject?.name || "Unknown",
+        subjectCode: examSubject?.code || "",
         marksObtained: m.marksObtained,
         maxMarks: exam.totalMarks,
         grade,

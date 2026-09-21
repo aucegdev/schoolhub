@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import * as settingsService from "./settings.service";
 
+const q = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
+
 export async function listSettings(req: Request, res: Response, next: NextFunction) {
   try {
-    res.json({ success: true, data: await settingsService.listSettings(req.query.category as string | undefined) });
+    res.json({ success: true, data: await settingsService.listSettings(q(req.query.category)) });
   } catch (e) { next(e); }
 }
 
 export async function getSetting(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await settingsService.getSetting(req.params.key) }); } catch (e) { next(e); }
+  try { res.json({ success: true, data: await settingsService.getSetting(String(req.params.key)) }); } catch (e) { next(e); }
 }
 
 export async function setSetting(req: Request, res: Response, next: NextFunction) {
@@ -17,12 +19,12 @@ export async function setSetting(req: Request, res: Response, next: NextFunction
 
 export async function updateSetting(req: Request, res: Response, next: NextFunction) {
   try {
-    res.json({ success: true, data: await settingsService.updateSetting(req.params.key, req.body.value, req.body.category, req.body.updatedBy) });
+    res.json({ success: true, data: await settingsService.updateSetting(String(req.params.key), req.body.value, req.body.category, req.body.updatedBy) });
   } catch (e) { next(e); }
 }
 
 export async function deleteSetting(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, message: "Setting deleted" }); await settingsService.deleteSetting(req.params.key); } catch (e) { next(e); }
+  try { res.json({ success: true, message: "Setting deleted" }); await settingsService.deleteSetting(String(req.params.key)); } catch (e) { next(e); }
 }
 
 export async function seedSettings(req: Request, res: Response, next: NextFunction) {

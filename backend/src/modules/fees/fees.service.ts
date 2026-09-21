@@ -108,7 +108,10 @@ export async function getStudentDues(studentId: string) {
 
 export async function getClassDuesSummary(classId: string) {
   const structures = await prisma.feeStructure.findMany({ where: { classId } });
-  const students = await prisma.student.findMany({ where: { classId, status: "ACTIVE" } });
+  const students = await prisma.student.findMany({
+    where: { classId, status: "ACTIVE" },
+    include: { feePayments: true },
+  });
 
   const summary = students.map(s => {
     const payments = s.feePayments || [];

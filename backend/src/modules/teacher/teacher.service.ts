@@ -29,7 +29,7 @@ interface TeacherFilters {
   limit?: number;
 }
 
-async function generateEmployeeId(): Promise<string> {
+export async function generateEmployeeId(): Promise<string> {
   const year = new Date().getFullYear();
   const lastTeacher = await prisma.teacher.findFirst({
     where: { employeeId: { startsWith: `TCH-${year}-` } },

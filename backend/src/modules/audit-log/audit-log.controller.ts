@@ -1,16 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import * as auditService from "./audit-log.service";
 
+const q = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
+
 export async function listAuditLogs(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await auditService.listAuditLogs({
-      actorId: req.query.actorId as string | undefined,
-      resource: req.query.resource as string | undefined,
-      action: req.query.action as string | undefined,
-      fromDate: req.query.fromDate as string | undefined,
-      toDate: req.query.toDate as string | undefined,
-      page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      actorId: q(req.query.actorId),
+      resource: q(req.query.resource),
+      action: q(req.query.action),
+      fromDate: q(req.query.fromDate),
+      toDate: q(req.query.toDate),
+      page: q(req.query.page) ? parseInt(q(req.query.page)!) : undefined,
+      limit: q(req.query.limit) ? parseInt(q(req.query.limit)!) : undefined,
     });
     res.json({ success: true, ...result });
   } catch (error) {
@@ -19,7 +21,7 @@ export async function listAuditLogs(req: Request, res: Response, next: NextFunct
 }
 
 export async function getAuditLog(req: Request, res: Response, next: NextFunction) {
-  try { res.json({ success: true, data: await auditService.getAuditLog(req.params.id) }); } catch (e) { next(e); }
+  try { res.json({ success: true, data: await auditService.getAuditLog(String(req.params.id)) }); } catch (e) { next(e); }
 }
 
 export async function createAuditLog(req: Request, res: Response, next: NextFunction) {

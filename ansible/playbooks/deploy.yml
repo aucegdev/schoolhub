@@ -1,61 +1,111 @@
 ---
-- name: Deploy application
-  hosts: production
-  become: yes
-  
-  vars:
-    app_dir: /opt/schoolhub
-    db_container: schoolhub-db
-    backend_container: schoolhub-backend
+- name: Deploy SchoolHub to production
+ hosts: production
+ become: yes
+ vars:
+ app_dir: /opt/schoolhub
 
-  tasks:
-    - name: Ensure app directory exists
-      file:
-        path: "{{ app_dir }}"
-        state: directory
-        owner: schoolhub
-        group: schoolhub
+ tasks:
+ - name: Ensure app directory exists
+ file:
+ path: "{{ app_dir }}"
+ state: directory
+ owner: schoolhub
+ group: schoolhub
+ mode: '0755'
 
-    - name: Copy docker-compose file
-      copy:
-        src: ../../docker-compose.yml
-        dest: "{{ app_dir }}/docker-compose.yml"
-        owner: schoolhub
-        group: schoolhub
+ - name: Copy docker-compose files to server
+ copy:
+ src: ../../
+ dest: "{{ app_dir }}/"
+ owner: schoolhub
+ group: schoolhub
+ mode: '0644'
+ exclude:
+ - node_modules/
+ - dist/
+ - build/
+ - .git/
+ - '*.log'
+ - Thesis_Title/
+ - Thesis_Title/**/*
+ - backend/node_modules/
+ - backend/dist/
+ - frontend/node_modules/
+ - frontend/dist/
 
-    - name: Copy production env file (Ensure this exists locally)
-      copy:
-        src: ../../.env.production
-        dest: "{{ app_dir }}/.env"
-        owner: schoolhub
-        group: schoolhub
-        mode: '0600'
-      ignore_errors: yes  # Ignored if missing locally during automated runs
+ - name: Ensure production env file exists
+ stat:
+ path: "{{ app_dir }}/.env.production"
+ register: env_prod
 
-    - name: Pull Docker images
-      command: docker compose pull
-      args:
-        chdir: "{{ app_dir }}"
-      become_user: schoolhub
+ - name: Fail if .env.production missing (must be provisioned separately)
+ fail:
+ msg: ".env.production is missing on {{ inventory_hostname }}. Provision it with production secrets before deploying."
+ when: not env_prod.stat.exists
 
-    - name: Restart Docker Compose services
-      command: docker compose up -d
-      args:
-        chdir: "{{ app_dir }}"
-      become_user: schoolhub
+ - name: Ensure .env.production has correct permissions
+ file:
+ path: "{{ app_dir }}/.env.production"
+ owner: schoolhub
+ group: schoolhub
+ mode: '0600'
+ when: env_prod.stat.exists
 
-    - name: Wait for database to be ready
-      command: docker exec {{ db_container }} pg_isready -U postgres
-      register: db_status
-      until: db_status.rc == 0
-      retries: 10
-      delay: 5
+ - name: Pull Docker images
+ command: docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+ args:
+ chdir: "{{ app_dir }}"
+ become_user: schoolhub
 
-    - name: Run Prisma migrations
-      command: docker exec {{ backend_container }} npx prisma migrate deploy
-      become_user: root
+ - name: Wait for any running backend to drain
+ command: docker compose -f docker-compose.yml -f docker-compose.prod.yml down backend
+ args:
+ chdir: "{{ app_dir }}"
+ become_user: schoolhub
+ ignore_errors: yes
 
-    - name: Verify backend container is running
-      command: docker ps -q -f name={{ backend_container }}
-      register: backend_running
-      failed_when: backend_running.stdout == ""
+ - name: Start all services
+ command: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+ args:
+ chdir: "{{ app_dir }}"
+ become_user: schoolhub
+
+ - name: Wait for postgres to be ready
+ command: docker exec schoolhub-postgres pg_isready -U postgres
+ register: db_status
+ retries: 10
+ delay: 5
+ until: db_status.rc == 0
+
+ - name: Run Prisma migrations
+ command: docker exec schoolhub-backend npx prisma migrate deploy
+ become_user: root
+ ignore_errors: yes
+
+ - name: Verify backend container is running
+ command: docker ps -q -f name=schoolhub-backend
+ register: backend_running
+ failed_when: backend_running.stdout == ""
+ changed_when: false
+
+ - name: Verify frontend container is running
+ command: docker ps -q -f name=schoolhub-frontend
+ register: frontend_running
+ failed_when: frontend_running.stdout == ""
+ changed_when: false
+
+ - name: Verify nginx container is running
+ command: docker ps -q -f name=schoolhub-nginx
+ register: nginx_running
+ failed_when: nginx_running.stdout == ""
+ changed_when: false
+
+ - name: Display deployment summary
+ debug:
+ msg:
+ - "=== Deployment Summary ==="
+ - "Backend: {{ backend_running.stdout != '' | ternary('RUNNING', 'FAILED') }}"
+ - "Frontend: {{ frontend_running.stdout != '' | ternary('RUNNING', 'FAILED') }}"
+ - "Nginx: {{ nginx_running.stdout != '' | ternary('RUNNING', 'FAILED') }}"
+ - "Database: {{ db_status.rc == 0 | ternary('READY', 'FAILED') }}"

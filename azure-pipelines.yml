@@ -1,4 +1,19 @@
+# SchoolHub Azure DevOps CI/CD Pipeline
+# GitHub: aucegdev/schoolhub
+# Triggers on: main (lint → test → build → docker → deploy)
+#              dev  (lint → test → build → docker, no deploy)
+#
+# Required service connections (Project Settings → Service Connections):
+#   DockerRegistryConnection  — Docker Hub (Docker Registry type)
+#   ProductionVM_SSH          — Azure VM (SSH type)
+
 trigger:
+  branches:
+    include:
+      - main
+      - dev
+
+pr:
   branches:
     include:
       - main
@@ -8,106 +23,331 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
+  # Docker Hub username / org
   dockerRegistry: 'schoolhubdev'
   backendImage: 'schoolhub-backend'
   frontendImage: 'schoolhub-frontend'
-  tag: '$(Build.BuildId)'
+
+  # Build tag — unique per pipeline run
+  TAG: '$(Build.BuildId)'
+
+  # Azure service connections
   dockerRegistryConnection: 'DockerRegistryConnection'
+  azureVMConnection: 'ProductionVM_SSH'
 
 stages:
-- stage: Build
-  displayName: 'Build & Test'
-  jobs:
-  - job: BuildBackend
-    displayName: 'Build Backend'
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '22.x'
-      displayName: 'Install Node.js'
-    - script: |
-        cd backend
-        npm ci
-      displayName: 'Install Backend Dependencies'
-    - script: |
-        cd backend
-        npm run lint
-      displayName: 'Lint Backend'
-    - script: |
-        cd backend
-        npx prisma generate
-        npm run build
-      displayName: 'Build Backend'
-  
-  - job: BuildFrontend
-    displayName: 'Build Frontend'
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '22.x'
-      displayName: 'Install Node.js'
-    - script: |
-        cd frontend
-        npm ci
-      displayName: 'Install Frontend Dependencies'
-    - script: |
-        cd frontend
-        npm run lint
-      displayName: 'Lint Frontend'
-    - script: |
-        cd frontend
-        npm run build
-      displayName: 'Build Frontend'
-
-- stage: Docker
-  displayName: 'Docker Build'
-  dependsOn: Build
-  condition: succeeded()
-  jobs:
-  - job: DockerBuild
-    displayName: 'Docker Build & Push'
-    steps:
-    - task: Docker@2
-      displayName: 'Build and push backend image'
-      inputs:
-        containerRegistry: '$(dockerRegistryConnection)'
-        repository: '$(dockerRegistry)/$(backendImage)'
-        command: 'buildAndPush'
-        Dockerfile: 'backend/Dockerfile'
-        tags: |
-          $(tag)
-          latest
-    
-    - task: Docker@2
-      displayName: 'Build and push frontend image'
-      inputs:
-        containerRegistry: '$(dockerRegistryConnection)'
-        repository: '$(dockerRegistry)/$(frontendImage)'
-        command: 'buildAndPush'
-        Dockerfile: 'frontend/Dockerfile'
-        tags: |
-          $(tag)
-          latest
-
-- stage: Deploy
-  displayName: 'Deploy to Azure VM'
-  dependsOn: Docker
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-  jobs:
-  - deployment: DeployToVM
-    displayName: 'Deploy to Production VM'
-    environment: 'production'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: SSH@0
-            displayName: 'Deploy application via SSH'
+  # ============================================================
+  # Stage 1: Lint
+  # Runs on every branch. Each job installs its own deps because
+  # Azure hosted agents are fresh VMs — there is no shared disk.
+  # ============================================================
+  - stage: Lint
+    displayName: 'Lint'
+    jobs:
+      - job: LintBackend
+        displayName: 'Lint Backend'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Use Node.js 22'
             inputs:
-              sshEndpoint: 'ProductionVM_SSH'
-              runOptions: 'commands'
-              commands: |
-                cd /opt/schoolhub
-                docker compose pull
-                docker compose up -d
-                docker image prune -af
+              versionSpec: '22.x'
+
+          - script: |
+              cd backend
+              npm ci
+              npm run lint
+            displayName: 'Install & Lint Backend'
+
+      - job: LintFrontend
+        displayName: 'Lint Frontend'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Use Node.js 22'
+            inputs:
+              versionSpec: '22.x'
+
+          - script: |
+              cd frontend
+              npm ci
+              npm run lint
+            displayName: 'Install & Lint Frontend'
+
+  # ============================================================
+  # Stage 2: Test
+  # Runs on BOTH dev and main.
+  # Backend tests need a live PostgreSQL service container.
+  # Frontend "test" is a full production build (type-checks all).
+  # ============================================================
+  - stage: Test
+    displayName: 'Test'
+    dependsOn: Lint
+    condition: succeeded()
+    jobs:
+      - job: TestBackend
+        displayName: 'Backend Unit & Integration Tests'
+        services:
+          postgres:
+            image: postgres:15-alpine
+            env:
+              POSTGRES_USER: postgres
+              POSTGRES_PASSWORD: schoolhub_test
+              POSTGRES_DB: schoolhub_test
+            ports:
+              - 5432:5432
+            options: >-
+              --health-cmd "pg_isready -U postgres"
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+        steps:
+          - task: NodeTool@0
+            displayName: 'Use Node.js 22'
+            inputs:
+              versionSpec: '22.x'
+
+          - script: |
+              cd backend
+              npm ci
+              npx prisma generate
+            displayName: 'Install deps & generate Prisma client'
+
+          - script: |
+              cd backend
+              npx prisma migrate deploy
+            displayName: 'Run DB migrations (test DB)'
+            env:
+              DATABASE_URL: 'postgresql://postgres:schoolhub_test@localhost:5432/schoolhub_test?schema=public'
+
+          - script: |
+              cd backend
+              npm test
+            displayName: 'Run backend tests'
+            env:
+              DATABASE_URL: 'postgresql://postgres:schoolhub_test@localhost:5432/schoolhub_test?schema=public'
+              NODE_ENV: test
+
+      - job: TestFrontend
+        displayName: 'Frontend Build Check (type-safe)'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Use Node.js 22'
+            inputs:
+              versionSpec: '22.x'
+
+          - script: |
+              cd frontend
+              npm ci
+              npm run build
+            displayName: 'Install & build frontend (type check)'
+
+  # ============================================================
+  # Stage 3: Build
+  # Verifies backend compiles cleanly (Prisma + tsc).
+  # NOTE: condition allows Test = Succeeded OR Skipped so that
+  #       future changes that skip Test don't silently block Build.
+  #       Currently Test always runs (condition: succeeded()) but
+  #       this guard is best practice for pipeline resilience.
+  # ============================================================
+  - stage: Build
+    displayName: 'Build'
+    dependsOn: Test
+    condition: |
+      and(
+        in(dependencies.Test.result, 'Succeeded', 'Skipped'),
+        or(
+          eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+          eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+        )
+      )
+    jobs:
+      - job: BuildBackend
+        displayName: 'Build Backend (tsc)'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Use Node.js 22'
+            inputs:
+              versionSpec: '22.x'
+
+          - script: |
+              cd backend
+              npm ci
+              npx prisma generate
+              npm run build
+            displayName: 'Install, generate Prisma & compile TypeScript'
+
+      - job: BuildFrontend
+        displayName: 'Build Frontend (Vite)'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Use Node.js 22'
+            inputs:
+              versionSpec: '22.x'
+
+          - script: |
+              cd frontend
+              npm ci
+              npm run build
+            displayName: 'Install & Vite build'
+
+  # ============================================================
+  # Stage 4: Docker Build & Push
+  # Builds Docker images and pushes to Docker Hub.
+  # Uses separate build + push steps so --build-arg is passed
+  # correctly (Docker@2 buildAndPush drops the arguments field).
+  # Tags: $(Build.BuildId)  — exact build for traceability
+  #       latest            — convenience tag
+  # ============================================================
+  - stage: Docker
+    displayName: 'Docker Build & Push'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: DockerBuildPush
+        displayName: 'Build & Push Images to Docker Hub'
+        steps:
+          # ── Backend ──────────────────────────────────────────
+          - task: Docker@2
+            displayName: 'Build backend image'
+            inputs:
+              containerRegistry: '$(dockerRegistryConnection)'
+              repository: '$(dockerRegistry)/$(backendImage)'
+              command: build
+              Dockerfile: 'backend/Dockerfile'
+              buildContext: 'backend'
+              tags: |
+                $(TAG)
+                latest
+
+          - task: Docker@2
+            displayName: 'Push backend image'
+            inputs:
+              containerRegistry: '$(dockerRegistryConnection)'
+              repository: '$(dockerRegistry)/$(backendImage)'
+              command: push
+              tags: |
+                $(TAG)
+                latest
+
+          # ── Frontend ─────────────────────────────────────────
+          # --build-arg injects VITE_API_URL at Docker build time
+          # so Vite bakes /api/v1 into the compiled JS bundle.
+          - task: Docker@2
+            displayName: 'Build frontend image'
+            inputs:
+              containerRegistry: '$(dockerRegistryConnection)'
+              repository: '$(dockerRegistry)/$(frontendImage)'
+              command: build
+              Dockerfile: 'frontend/Dockerfile'
+              buildContext: 'frontend'
+              arguments: '--build-arg VITE_API_URL=/api/v1'
+              tags: |
+                $(TAG)
+                latest
+
+          - task: Docker@2
+            displayName: 'Push frontend image'
+            inputs:
+              containerRegistry: '$(dockerRegistryConnection)'
+              repository: '$(dockerRegistry)/$(frontendImage)'
+              command: push
+              tags: |
+                $(TAG)
+                latest
+
+  # ============================================================
+  # Stage 5: Deploy  (main branch only)
+  # SSH into the Azure VM and:
+  #   1. Pull the exact images built in this pipeline run
+  #   2. Run Prisma migrations (failure = pipeline failure)
+  #   3. Bring up services with --force-recreate
+  #   4. Health-check — failure = pipeline failure
+  #
+  # Prerequisites on VM:
+  #   /opt/schoolhub/.env.production  — created manually, not by CI
+  #   /opt/schoolhub/docker-compose.prod.yml
+  #   /opt/schoolhub/nginx/nginx.conf
+  #   Docker + Docker Compose v2 installed
+  # ============================================================
+  - stage: Deploy
+    displayName: 'Deploy to Production VM'
+    dependsOn: Docker
+    condition: |
+      and(
+        succeeded(),
+        eq(variables['Build.SourceBranch'], 'refs/heads/main')
+      )
+    jobs:
+      - deployment: DeployToVM
+        displayName: 'SSH Deploy to Azure VM'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                # ── Main deployment script ────────────────────
+                - task: SSH@0
+                  displayName: 'Deploy SchoolHub to Azure VM'
+                  inputs:
+                    sshEndpoint: '$(azureVMConnection)'
+                    runOptions: 'inline'
+                    inline: |
+                      set -e
+
+                      echo "=== SchoolHub Production Deployment ==="
+                      echo "Image tag : $(TAG)"
+                      echo "Deploy time: $(date)"
+                      echo ""
+
+                      cd /opt/schoolhub
+
+                      # Guard: .env.production must exist on the VM.
+                      # Create it manually with restricted permissions before
+                      # running the pipeline for the first time.
+                      if [ ! -f .env.production ]; then
+                        echo "[ERROR] /opt/schoolhub/.env.production not found."
+                        echo "        Create it on the VM before deploying."
+                        exit 1
+                      fi
+
+                      # Export the exact build tag so docker-compose.prod.yml
+                      # pulls schoolhubdev/schoolhub-*:<BuildId> not 'latest'.
+                      export TAG=$(TAG)
+
+                      echo "[1/4] Pulling images tag=$(TAG) ..."
+                      docker compose -f docker-compose.prod.yml pull
+
+                      echo "[2/4] Starting services ..."
+                      docker compose -f docker-compose.prod.yml up -d --force-recreate
+
+                      echo "[3/4] Waiting for containers to initialise (15s) ..."
+                      sleep 15
+
+                      echo "[4/4] Running Prisma migrations ..."
+                      # Do NOT use || true here — a migration failure must fail the deploy.
+                      docker compose -f docker-compose.prod.yml exec -T backend \
+                        npx prisma migrate deploy
+
+                      echo ""
+                      echo "=== Deployment Complete ==="
+                      docker compose -f docker-compose.prod.yml ps
+
+                # ── Post-deploy health check ──────────────────
+                - task: SSH@0
+                  displayName: 'Health check'
+                  condition: succeeded()
+                  inputs:
+                    sshEndpoint: '$(azureVMConnection)'
+                    runOptions: 'inline'
+                    inline: |
+                      set -e
+
+                      echo "Waiting 10s for Nginx to be ready ..."
+                      sleep 10
+
+                      echo "Running health check ..."
+                      curl -sf http://localhost/api/v1/health \
+                        && echo "[OK] Backend is healthy" \
+                        || { echo "[FAIL] Backend did not respond — rolling back check"; exit 1; }
+
+                      echo ""
+                      docker compose -f /opt/schoolhub/docker-compose.prod.yml ps

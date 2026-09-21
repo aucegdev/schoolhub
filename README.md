@@ -49,18 +49,57 @@ SchoolHub is a modern school management platform built with React, TypeScript, N
 - `dev` - active integration branch
 - `feature/*` - feature branches
 
-## Local Setup
+## Environment Setup
+
+SchoolHub uses separate environment files for local development and production:
+
+| File | Purpose | Used By |
+|------|---------|---------|
+| `.env.local` | Local development (hot-reload, localhost) | `docker compose up` |
+| `.env.production` | Azure production (secrets, nginx) | CI/CD, Ansible |
+| `.env.test` | CI/CD test stage | Azure Pipelines |
+| `.env.example` | Reference template | Copy to create others |
+
+**Quick setup:**
+```bash
+# 1. Set up local environment
+task env:setup
+
+# 2. Edit with your values
+nano .env.local
+nano backend/.env
+nano frontend/.env
+
+# 3. Start PostgreSQL
+docker compose up postgres -d
+
+# 4. Start backend and frontend
+task run:dev:backend # Terminal 1
+task run:dev:ui # Terminal 2
+
+# Or full Docker stack
+task docker:up
+```
+
+**Production deploy:**
+```bash
+# 1. Create .env.production with real secrets
+cp .env.example .env.production
+# Edit with production values...
+
+# 2. Push to main branch (triggers Azure DevOps pipeline)
+git push origin main
+```
+
+## Local Setup (manual, no Docker)
 
 1. Copy the env templates:
-   - `cp .env.example .env`
-   - `cp backend/.env.example backend/.env`
-   - `cp frontend/.env.example frontend/.env`
+ - `task env:setup` (or manually: `cp .env.example .env.local && cp backend/.env.example backend/.env && cp frontend/.env.example frontend/.env`)
 2. Fill in your Firebase values and JWT secret.
 3. Start PostgreSQL and services:
-   - `docker compose up postgres pgadmin -d`
-   - `cd backend && npm install && npx prisma generate && npm run dev`
-   - `cd frontend && npm install && npm run dev`
-
+ - `docker compose up postgres pgadmin -d`
+ - `cd backend && npm install && npx prisma generate && npm run dev`
+ - `cd frontend && npm install && npm run dev`
 ## Firebase Google Login
 
 SchoolHub supports Firebase Google authentication for the web portal. Set the following variables in your frontend env:
@@ -76,10 +115,33 @@ The backend verifies Firebase ID tokens when configured, while still supporting 
 
 ## Deployment
 
-- Local compose path: `docker compose up --build`
-- Azure deployment path: `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build`
-- Azure DevOps pipeline definition: `azure-pipelines.yml`
-- Jenkins pipeline definition: `Jenkinsfile`
+### Local
+```bash
+task env:setup # First-time setup
+task docker:up # Full stack with hot-reload
+task docker:down # Stop all
+```
+
+### Production (Azure)
+```bash
+# Option A: Push to main (triggers Azure DevOps CI/CD)
+git push origin main
+
+# Option B: Manual deploy via Ansible
+task env:setup # Ensure .env.production exists
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/provision.yml
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml
+ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/ssl.yml
+```
+
+### Azure Hosting Options
+| Option | Cost | Complexity |
+|--------|------|-----------|
+| Azure B1s VM (current) | ~$8-13/mo | Low — Docker Compose |
+| Azure Container Apps | ~$5-10/mo | Medium — rewrite deploy |
+| Azure for Students | Free (12mo) | Low — $100 credit |
+
+**CI/CD Pipeline definitions:** `azure-pipelines.yml` (primary), `Jenkinsfile` (legacy)
 
 ## Documentation
 

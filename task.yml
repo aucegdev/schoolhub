@@ -1,74 +1,70 @@
-version: '3'
+# SchoolHub — Lightweight task runner config
+# This file contains essential single-command shortcuts for SchoolHub development
+# For the full task list, use: task --list (Taskfile.yml)
 
-tasks:
-  default:
-    desc: "Display all available SchoolHub tasks"
-    cmds:
-      - task --list
+# Quick Commands Reference
+# ========================
 
-  run:dev:ui:
-    desc: "Run Frontend React Vite UI in development mode"
-    cmds:
-      - npm run dev --prefix frontend
+## Local Development
+make dev-backend # Run backend dev server
+make dev-frontend # Run frontend dev server
+make dev-all # Start full stack via Docker
+make dev-tools # Start full stack + PgAdmin
 
-  run:dev:backend:
-    desc: "Run Backend Express API in development mode"
-    cmds:
-      - npm run dev --prefix backend
+## Build
+make build # Build backend + frontend
+make build-ui # Build frontend only
+make build-backend # Build backend only
+make lint # Lint all
 
-  run:dev:all:
-    desc: "Run full stack local development environment"
-    cmds:
-      - ./scripts/docker-run.sh
+## Docker
+make docker-up # Start local Docker stack
+make docker-down # Stop Docker stack
+make docker-prod # Start production Docker stack
+make docker-logs # View Docker logs
 
-  build:ui:
-    desc: "Build Frontend UI production bundle"
-    cmds:
-      - npm run build --prefix frontend
+## Database
+make db-generate # Generate Prisma client
+make db-migrate # Run dev migrations
+make db-migrate-prod # Run prod migrations
+make db-seed # Seed database
+make db-studio # Open Prisma Studio
 
-  build:backend:
-    desc: "Build Backend TypeScript & Prisma Client"
-    cmds:
-      - npm run build --prefix backend
+## Deploy
+make deploy-azure # Trigger Azure DevOps pipeline
 
-  build:all:
-    desc: "Build full stack (Backend & Frontend)"
-    cmds:
-      - npm run build
+## Setup
+make env-setup # Create env files from templates
+make env-check # Verify env files exist
+make verify # Run DevOps verification audit
 
-  lint:all:
-    desc: "Lint full stack codebase"
-    cmds:
-      - npm run lint
+# Production targets (require .env.production)
+.PHONY: docker-prod docker-prod-down deploy-azure db-migrate-prod
 
-  docker:up:
-    desc: "Launch Docker containers (Postgres + PgAdmin + Backend + Frontend)"
-    cmds:
-      - ./scripts/docker-run.sh
+docker-prod:
+ @echo "Starting production stack..."
+ docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
-  docker:prod:
-    desc: "Launch production multi-container stack with Nginx"
-    cmds:
-      - docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+docker-prod-down:
+ @echo "Stopping production stack..."
+ docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 
-  docker:down:
-    desc: "Stop and clean up Docker containers"
-    cmds:
-      - docker compose down
+deploy-azure:
+ @echo "Pushing to trigger Azure DevOps pipeline..."
+ git push origin HEAD
 
-  db:generate:
-    desc: "Generate Prisma Client from schema"
-    dir: backend
-    cmds:
-      - npx prisma generate
+db-migrate-prod:
+ @echo "Running production migrations..."
+ cd backend && npx prisma migrate deploy
 
-  db:migrate:
-    desc: "Apply Prisma migrations"
-    dir: backend
-    cmds:
-      - npx prisma migrate dev
+# Docker targets
+.PHONY: docker-up docker-down docker-logs
 
-  verify:devops:
-    desc: "Run automated DevOps deployment verification audit"
-    cmds:
-      - ./scripts/verify-devops-deployment.sh
+docker-up:
+ @./scripts/docker-run.sh
+
+docker-down:
+ @docker compose down
+
+docker-logs:
+ @docker compose logs -f

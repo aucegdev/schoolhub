@@ -1,12 +1,23 @@
-node_modules/
-dist/
-build/
+# Environment files — never commit secrets
 .env
 .env.local
+.env.production
+.env.test
+backend/.env
+frontend/.env.local
+frontend/.env.production
+
+# Build outputs
+dist/
+build/
+
+# Node modules
+node_modules/
+
+# Logs
 *.log
 .DS_Store
 coverage/
-.next/
 backend/generated/
 Thesis_Title/.tmp_preview/
 

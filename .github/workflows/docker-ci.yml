@@ -1,0 +1,134 @@
+name: Docker CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  schedule:
+    # Rebuild regularly to catch broken base images or dependency resolution.
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+
+  quality:
+    name: ${{ matrix.service }} quality checks
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: frontend
+            working-directory: frontend
+            cache-dependency-path: frontend/package-lock.json
+            commands: |
+              npm ci
+              npm run lint
+              npm run build
+          - service: backend
+            working-directory: backend
+            cache-dependency-path: backend/package-lock.json
+            commands: |
+              npm ci
+              npx prisma generate
+              npm run lint
+              npm test -- --runInBand
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.cache-dependency-path }}
+
+      - name: Install, lint, build, and test
+        working-directory: ${{ matrix.working-directory }}
+        run: ${{ matrix.commands }}
+
+  report-service-tests:
+    name: Report service tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Run Maven tests
+        working-directory: report-service
+        run: mvn --batch-mode verify
+
+  compose-validation:
+    name: Validate Docker Compose configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate development Compose file
+        run: |
+          cp .env.test .env.local
+          docker compose -f docker-compose.yml config -q
+
+      - name: Validate production Compose file
+        run: |
+          : > .env.production
+          POSTGRES_PASSWORD=ci-placeholder docker compose -f docker-compose.prod.yml config -q
+
+  build-images:
+    name: Build ${{ matrix.service }} image
+    runs-on: ubuntu-latest
+    needs: [quality, report-service-tests, compose-validation]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: frontend
+            context: ./frontend
+            build-args: VITE_API_URL=/api/v1
+          - service: backend
+            context: ./backend
+            build-args: ""
+          - service: report-service
+            context: ./report-service
+            build-args: ""
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          build-args: ${{ matrix.build-args }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}

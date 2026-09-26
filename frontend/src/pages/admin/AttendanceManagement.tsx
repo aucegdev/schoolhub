@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, Clock, AlertCircle, Calendar, Save } from "lucide-react";
+import { CheckCircle, XCircle, Clock, AlertCircle, Calendar, Save, Users, CheckCheck, X as XIcon } from "lucide-react";
 import { listClasses, type ClassData } from "../../services/class";
 import { listStudents, type Student } from "../../services/student";
 import { markAttendance, getAttendanceSummary } from "../../services/attendance";
@@ -143,23 +143,58 @@ export default function AttendanceManagement() {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
-            <div className="text-xs font-semibold text-emerald-600">Present</div>
-            <div className="text-2xl font-bold text-emerald-800 mt-1">{summary.present}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in">
+          <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl card-lift">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <div className="text-xs font-semibold text-emerald-600">Present</div>
+            </div>
+            <div className="text-2xl font-bold text-emerald-800">{summary.present}<span className="text-sm text-emerald-500 ml-1">/{summary.total}</span></div>
+            <div className="mt-2 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${summary.total > 0 ? (summary.present / summary.total) * 100 : 0}%` }} />
+            </div>
           </div>
-          <div className="bg-red-50 border border-red-100 p-4 rounded-xl">
-            <div className="text-xs font-semibold text-red-600">Absent</div>
-            <div className="text-2xl font-bold text-red-800 mt-1">{summary.absent}</div>
+          <div className="bg-red-50 border border-red-100 p-4 rounded-xl card-lift">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-600" />
+              <div className="text-xs font-semibold text-red-600">Absent</div>
+            </div>
+            <div className="text-2xl font-bold text-red-800">{summary.absent}</div>
+            <div className="mt-2 h-1.5 bg-red-100 rounded-full overflow-hidden">
+              <div className="h-full bg-red-500 rounded-full transition-all duration-500" style={{ width: `${summary.total > 0 ? (summary.absent / summary.total) * 100 : 0}%` }} />
+            </div>
           </div>
-          <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
-            <div className="text-xs font-semibold text-amber-600">Late</div>
-            <div className="text-2xl font-bold text-amber-800 mt-1">{summary.late}</div>
+          <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl card-lift">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-4 h-4 text-amber-600" />
+              <div className="text-xs font-semibold text-amber-600">Late</div>
+            </div>
+            <div className="text-2xl font-bold text-amber-800">{summary.late}</div>
+            <div className="mt-2 h-1.5 bg-amber-100 rounded-full overflow-hidden">
+              <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${summary.total > 0 ? (summary.late / summary.total) * 100 : 0}%` }} />
+            </div>
           </div>
-          <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl">
-            <div className="text-xs font-semibold text-indigo-600">Excused</div>
-            <div className="text-2xl font-bold text-indigo-800 mt-1">{summary.excused}</div>
+          <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl card-lift">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-4 h-4 text-indigo-600" />
+              <div className="text-xs font-semibold text-indigo-600">Excused</div>
+            </div>
+            <div className="text-2xl font-bold text-indigo-800">{summary.excused}</div>
+            <div className="mt-2 h-1.5 bg-indigo-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${summary.total > 0 ? (summary.excused / summary.total) * 100 : 0}%` }} />
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* Bulk Mark Toolbar */}
+      {students.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+          <span className="text-xs font-semibold text-slate-500 mr-1 flex items-center gap-1">
+            <Users className="w-3.5 h-3.5" /> Quick Mark All:
+          </span>
+          <button onClick={() => { const m: Record<string, "PRESENT" | "ABSENT" | "LATE" | "EXCUSED"> = {}; students.forEach(s => m[s.id!] = "PRESENT"); setAttendance(m); }} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition flex items-center gap-1"><CheckCheck className="w-3.5 h-3.5" /> All Present</button>
+          <button onClick={() => { const m: Record<string, "PRESENT" | "ABSENT" | "LATE" | "EXCUSED"> = {}; students.forEach(s => m[s.id!] = "ABSENT"); setAttendance(m); }} className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition flex items-center gap-1"><XIcon className="w-3.5 h-3.5" /> All Absent</button>
         </div>
       )}
 
@@ -168,9 +203,9 @@ export default function AttendanceManagement() {
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
             <tr>
-              <th className="p-4">Roll No</th>
-              <th className="p-4">Student Name</th>
-              <th className="p-4 text-center">Status</th>
+              <th className="p-4 w-16">Roll No</th>
+              <th className="p-4">Student</th>
+              <th className="p-4 text-center w-[340px]">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -183,31 +218,46 @@ export default function AttendanceManagement() {
             ) : (
               students.map((st) => {
                 const currentStatus = attendance[st.id!] || "PRESENT";
+                const statusConfig: Record<string, { cls: string; icon: typeof CheckCircle }> = {
+                  PRESENT: { cls: "bg-emerald-600 text-white shadow-sm", icon: CheckCircle },
+                  ABSENT:  { cls: "bg-red-600 text-white shadow-sm", icon: XCircle },
+                  LATE:    { cls: "bg-amber-500 text-white shadow-sm", icon: Clock },
+                  EXCUSED: { cls: "bg-indigo-600 text-white shadow-sm", icon: AlertCircle },
+                };
                 return (
                   <tr key={st.id} className="hover:bg-slate-50/50 transition">
-                    <td className="p-4 font-mono text-slate-500 text-xs">{st.rollNumber || "N/A"}</td>
-                    <td className="p-4 font-medium text-slate-800">{st.firstName} {st.lastName}</td>
+                    <td className="p-4 font-mono text-slate-500 text-xs">{st.rollNumber || "—"}</td>
                     <td className="p-4">
-                      <div className="flex justify-center items-center gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                          {st.firstName[0]}{st.lastName?.[0] || ""}
+                        </div>
+                        <span className="font-medium text-slate-800">{st.firstName} {st.lastName}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex justify-center items-center gap-1.5">
                         {[
-                          { key: "PRESENT", label: "Present", color: "emerald", icon: CheckCircle },
-                          { key: "ABSENT", label: "Absent", color: "red", icon: XCircle },
-                          { key: "LATE", label: "Late", color: "amber", icon: Clock },
-                          { key: "EXCUSED", label: "Excused", color: "indigo", icon: AlertCircle },
-                        ].map((btn) => (
-                          <button
-                            key={btn.key}
-                            type="button"
-                            onClick={() => handleStatusChange(st.id!, btn.key as any)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                              currentStatus === btn.key
-                                ? `bg-${btn.color}-600 text-white shadow-sm`
-                                : `bg-slate-100 text-slate-600 hover:bg-slate-200`
-                            }`}
-                          >
-                            <btn.icon className="w-3.5 h-3.5" /> {btn.label}
-                          </button>
-                        ))}
+                          { key: "PRESENT", label: "Present" },
+                          { key: "ABSENT", label: "Absent" },
+                          { key: "LATE", label: "Late" },
+                          { key: "EXCUSED", label: "Excused" },
+                        ].map((btn) => {
+                          const cfg = statusConfig[btn.key];
+                          const isActive = currentStatus === btn.key;
+                          return (
+                            <button
+                              key={btn.key}
+                              type="button"
+                              onClick={() => handleStatusChange(st.id!, btn.key as any)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+                                isActive ? cfg.cls : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                              }`}
+                            >
+                              <cfg.icon className="w-3.5 h-3.5" /> {btn.label}
+                            </button>
+                          );
+                        })}
                       </div>
                     </td>
                   </tr>

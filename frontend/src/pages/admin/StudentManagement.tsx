@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Plus, Search, Trash2, Edit2, Phone, Mail, X, Eye } from "lucide-react";
+import { Plus, Search, Trash2, Edit2, Phone, Mail, X, Eye, GraduationCap } from "lucide-react";
+import EmptyState from "../../components/ui/EmptyState";
 import {
   listStudents,
   createStudent,
@@ -148,8 +149,15 @@ export default function StudentManagement() {
             <tbody className="divide-y divide-slate-100">
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400">
-                    No students found.
+                  <td colSpan={6} className="p-8">
+                    <EmptyState
+                      icon={GraduationCap}
+                      title="No students yet"
+                      description="Add your first student to start managing school records."
+                      actionLabel="Add Student"
+                      onAction={() => { setForm({ ...emptyStudent, admissionNo: `ADM-${Date.now().toString().slice(-4)}` }); setIsModalOpen(true); }}
+                      iconColor="text-indigo-400"
+                    />
                   </td>
                 </tr>
               ) : (

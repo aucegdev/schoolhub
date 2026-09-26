@@ -290,34 +290,61 @@ export default function ExamManagement() {
             <h2 className="text-xl font-bold text-slate-800">
               Enter Marks: {selectedExam.title} ({selectedExam.subject?.name})
             </h2>
-            <div className="space-y-3">
-              {students.map((st) => (
-                <div key={st.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                  <div>
-                    <div className="font-semibold text-sm text-slate-800">{st.firstName} {st.lastName}</div>
-                    <div className="text-xs text-slate-400">Roll: {st.rollNumber || "N/A"}</div>
+            <div className="space-y-2">
+              {students.map((st) => {
+                const pct = selectedExam.totalMarks > 0
+                  ? ((marksState[st.id!] ?? 0) / selectedExam.totalMarks) * 100
+                  : 0;
+                const gradeColor = pct >= 90 ? "bg-emerald-100 text-emerald-700" :
+                                   pct >= 75 ? "bg-blue-100 text-blue-700" :
+                                   pct >= 60 ? "bg-amber-100 text-amber-700" :
+                                   pct >= 0  ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-500";
+                const grade = pct >= 90 ? "A+" :
+                              pct >= 80 ? "A"  :
+                              pct >= 70 ? "B+" :
+                              pct >= 60 ? "B"  :
+                              pct >= 50 ? "C"  :
+                              pct > 0   ? "D"  : "—";
+                return (
+                  <div key={st.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs font-bold">
+                        {st.firstName[0]}{st.lastName?.[0] || ""}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm text-slate-800">{st.firstName} {st.lastName}</div>
+                        <div className="text-xs text-slate-400">Roll: {st.rollNumber || "N/A"}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        max={selectedExam.totalMarks}
+                        min={0}
+                        value={marksState[st.id!] ?? ""}
+                        onChange={(e) => setMarksState({ ...marksState, [st.id!]: Number(e.target.value) })}
+                        placeholder="Marks"
+                        className="w-24 px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-center font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      />
+                      <span className="text-xs text-slate-400 w-12 text-left">/ {selectedExam.totalMarks}</span>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-md ${gradeColor} w-10 text-center`}>{grade}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      max={selectedExam.totalMarks}
-                      value={marksState[st.id!] ?? ""}
-                      onChange={(e) => setMarksState({ ...marksState, [st.id!]: Number(e.target.value) })}
-                      placeholder="Marks"
-                      className="w-24 px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-center font-bold"
-                    />
-                    <span className="text-xs text-slate-400">/ {selectedExam.totalMarks}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-              <button onClick={() => setIsMarksModalOpen(false)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium">
-                Cancel
-              </button>
-              <button onClick={handleSaveMarks} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-                Save Marks
-              </button>
+            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+              <div className="text-xs text-slate-500">
+                A+: ≥90 · A: ≥80 · B+: ≥70 · B: ≥60 · C: ≥50 · D: &lt;50
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setIsMarksModalOpen(false)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium">
+                  Cancel
+                </button>
+                <button onClick={handleSaveMarks} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
+                  Save Marks
+                </button>
+              </div>
             </div>
           </div>
         </div>

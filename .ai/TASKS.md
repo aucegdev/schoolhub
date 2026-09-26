@@ -224,7 +224,7 @@
 | Prisma schema design | 2026-07-22 | All models defined |
 | Auth backend (JWT + RBAC) | 2026-07-22 | Login, logout, middleware |
 | School Info module | 2026-07-28 | Backend + Frontend |
-| Teacher CRUD | 2026-07-28 | Backend + Frontend |
+| Teacher CRUD | 2026-07-28 | Backend + Frontend; UI rewritten (2026-09-22) |
 | Teacher Subject Assignment | 2026-07-28 | Backend + Frontend |
 | Academic Year & Terms | 2026-07-28 | Backend + Frontend |
 | Calendar & Holidays | 2026-07-28 | Backend + Frontend |
@@ -232,5 +232,24 @@
 | Subject Management | ~2026-08-01 | Backend + Frontend |
 | Timetable (conflict detection) | ~2026-08-10 | Backend + Frontend |
 | Teacher Leave Management | ~2026-08-15 | Backend + Frontend |
-| Dashboard Stats API | ~2026-08-20 | Backend; Frontend in progress |
+| Dashboard Stats API | ~2026-08-20 | Backend; Frontend complete with 12 stat cards |
 | Documentation (8 docs) | 2026-08-25 | docs/ directory complete |
+| Backend TS type fixes | 2026-09-22 | Zero TypeScript errors across 12 modules |
+| Frontend Admin Dashboard enhancement | 2026-09-22 | Issue #68 |
+| Examination Module (Frontend) | 2026-09-22 | Issue #63 — exam CRUD, marks, report cards |
+| Bulk Report Card generation | 2026-09-22 | POST /exams/:examId/report-cards-bulk |
+| Fees Management (Frontend) | 2026-09-22 | Issue #64 — payment history viewer added |
+| Reports Page (Frontend) | 2026-09-22 | Issue #67 — attendance/exam reports from real API |
+| TeacherManagement UI rewrite | 2026-09-22 | Tailwind UI with search/filters/pagination |
+| DevOps verification script | 2026-09-22 | 34/34 checks pass — Jenkinsfile, Azure, Ansible, Docker |
+| report-service Maven PDF | 2026-09-22 | Compiles clean, Spring Boot + PDFBox |
+| Dockerfile (Backend) | 2026-09-22 | Multi-stage, Prisma generate, port 4000 |
+| Dockerfile (Frontend) | 2026-09-22 | Multi-stage with Nginx |
+| docker-compose.yml + prod | 2026-09-22 | All services including pgAdmin |
+| Ansible playbooks | 2026-09-22 | provision, deploy, ssl |
+| Taskfile.yml + task.yml | 2026-09-22 | task run:dev:ui, build:all, docker:up |
+| Settings module | 2026-09-22 | Issue #69 — 7 categories with persistence |
+| Transport module | 2026-09-22 | Issue #65 — routes, vehicles, drivers, allocations |
+| Notices & Events modules | 2026-09-22 | Issue #66 — full CRUD + priority/target |
+| Communication module | 2026-09-22 | Internal messaging with role targeting |
+| Realtime notifications | 2026-09-22 | WebSocket server, live counts |

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Search, Trash2, Edit2, Phone, Mail } from "lucide-react";
+import { Plus, Search, Trash2, Edit2, Phone, Mail, X, Eye } from "lucide-react";
 import {
   listStudents,
   createStudent,
@@ -30,6 +30,7 @@ export default function StudentManagement() {
   const [selectedClass, setSelectedClass] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [detailStudent, setDetailStudent] = useState<Student | null>(null);
   const [form, setForm] = useState<Student>(emptyStudent);
   const [message, setMessage] = useState("");
 
@@ -176,6 +177,9 @@ export default function StudentManagement() {
                       </span>
                     </td>
                     <td className="p-4 text-right space-x-2">
+                      <button onClick={() => setDetailStudent(st)} className="p-1.5 text-slate-400 hover:text-blue-600 transition" title="View">
+                        <Eye className="w-4 h-4" />
+                      </button>
                       <button onClick={() => handleOpenModal(st)} className="p-1.5 text-slate-400 hover:text-indigo-600 transition">
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -290,6 +294,45 @@ export default function StudentManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Student Detail Modal */}
+      {detailStudent && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Student Profile</h2>
+              <button onClick={() => setDetailStudent(null)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-sm">
+                  {detailStudent.firstName[0]}{detailStudent.lastName?.[0] || ""}
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">{detailStudent.firstName} {detailStudent.lastName}</p>
+                  <p className="text-xs text-slate-500">Admission: {detailStudent.admissionNo} {detailStudent.rollNumber && `· Roll: ${detailStudent.rollNumber}`}</p>
+                </div>
+                <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${detailStudent.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{detailStudent.status}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><span className="text-slate-500 text-xs">Gender</span><p className="font-medium">{detailStudent.gender || "N/A"}</p></div>
+                <div><span className="text-slate-500 text-xs">Class</span><p className="font-medium">{detailStudent.class?.name || "N/A"}</p></div>
+                <div><span className="text-slate-500 text-xs">Section</span><p className="font-medium">{detailStudent.section?.name || "N/A"}</p></div>
+                <div><span className="text-slate-500 text-xs">DOB</span><p className="font-medium">{detailStudent.dateOfBirth || "N/A"}</p></div>
+                <div><span className="text-slate-500 text-xs">Email</span><p className="font-medium">{detailStudent.email || "N/A"}</p></div>
+                <div><span className="text-slate-500 text-xs">Phone</span><p className="font-medium">{detailStudent.phone || "N/A"}</p></div>
+              </div>
+              <div className="pt-2 border-t border-slate-100">
+                <span className="text-slate-500 text-xs">Guardian</span>
+                <p className="text-sm font-medium">{detailStudent.guardianName || "N/A"} · {detailStudent.guardianPhone || "N/A"}</p>
+              </div>
+              <div className="flex justify-end pt-2">
+                <button onClick={() => { setDetailStudent(null); setForm(detailStudent); setEditingStudent(detailStudent); setIsModalOpen(true); }} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Edit Student</button>
+              </div>
+            </div>
           </div>
         </div>
       )}

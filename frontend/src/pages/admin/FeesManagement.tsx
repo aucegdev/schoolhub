@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Plus, DollarSign, Calendar, CreditCard } from "lucide-react";
+import { Plus, DollarSign, Calendar, CreditCard, Eye, Receipt, X } from "lucide-react";
 import { listClasses, type ClassData } from "../../services/class";
-import { listFeeStructures, createFeeStructure, recordFeePayment, type FeeStructure } from "../../services/fees";
+import { listFeeStructures, createFeeStructure, recordFeePayment, listFeePayments, type FeeStructure, type FeePayment } from "../../services/fees";
 import { listStudents, type Student } from "../../services/student";
 
 export default function FeesManagement() {
@@ -10,7 +10,10 @@ export default function FeesManagement() {
   const [students, setStudents] = useState<Student[]>([]);
   const [isStructureModalOpen, setIsStructureModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isPaymentsViewOpen, setIsPaymentsViewOpen] = useState(false);
   const [selectedStructure, setSelectedStructure] = useState<FeeStructure | null>(null);
+  const [payments, setPayments] = useState<FeePayment[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
   const [message, setMessage] = useState("");
 
   const [structureForm, setStructureForm] = useState({
@@ -80,6 +83,20 @@ export default function FeesManagement() {
     }
   };
 
+  async function handleViewPayments(structure: FeeStructure) {
+    setSelectedStructure(structure);
+    setLoadingPayments(true);
+    setIsPaymentsViewOpen(true);
+    try {
+      const res = await listFeePayments(undefined, structure.id);
+      setPayments(res);
+    } catch {
+      setPayments([]);
+    } finally {
+      setLoadingPayments(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -128,6 +145,12 @@ export default function FeesManagement() {
                 </div>
               </div>
 
+              <button
+                onClick={() => handleViewPayments(st)}
+                className="w-full flex items-center justify-center gap-2 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold transition mb-2"
+              >
+                <Eye className="w-4 h-4" /> View Payments ({st.payments?.length || 0})
+              </button>
               <button
                 onClick={() => {
                   setSelectedStructure(st);
@@ -272,6 +295,95 @@ export default function FeesManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Payments Modal */}
+      {isPaymentsViewOpen && selectedStructure && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-3xl w-full shadow-xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">{selectedStructure.title} — Payments</h2>
+                <p className="text-sm text-slate-500 mt-1">All recorded payments for this fee structure</p>
+              </div>
+              <button onClick={() => setIsPaymentsViewOpen(false)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {loadingPayments ? (
+              <div className="py-12 text-center text-slate-400 text-sm">Loading payments...</div>
+            ) : payments.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-sm">
+                <Receipt className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                No payments recorded yet for this fee.
+              </div>
+            ) : (
+              <>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-xs text-emerald-600 font-medium">Total Collected</div>
+                      <div className="text-lg font-bold text-emerald-800">
+                        ₹{payments.reduce((s, p) => s + p.amountPaid, 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-emerald-600 font-medium">Payments</div>
+                      <div className="text-lg font-bold text-emerald-800">{payments.length}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-emerald-600 font-medium">Average</div>
+                      <div className="text-lg font-bold text-emerald-800">
+                        ₹{Math.round(payments.reduce((s, p) => s + p.amountPaid, 0) / payments.length).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
+                        <tr>
+                          <th className="p-3">Date</th>
+                          <th className="p-3">Student</th>
+                          <th className="p-3">Mode</th>
+                          <th className="p-3 text-right">Amount</th>
+                          <th className="p-3">Transaction</th>
+                          <th className="p-3 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {payments.map((p) => (
+                          <tr key={p.id} className="hover:bg-slate-50/50">
+                            <td className="p-3 text-slate-600">{new Date(p.paymentDate).toLocaleDateString()}</td>
+                            <td className="p-3 font-medium text-slate-800">{p.student?.firstName} {p.student?.lastName}</td>
+                            <td className="p-3">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{p.paymentMode}</span>
+                            </td>
+                            <td className="p-3 text-right font-semibold text-emerald-700">₹{p.amountPaid.toLocaleString()}</td>
+                            <td className="p-3 font-mono text-xs text-slate-500">{p.transactionId || "—"}</td>
+                            <td className="p-3 text-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "SUCCESS" || p.status === "COMPLETED" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                {p.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <button onClick={() => setIsPaymentsViewOpen(false)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50">
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

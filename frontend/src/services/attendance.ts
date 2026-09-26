@@ -26,7 +26,7 @@ export async function getAttendance(params: { classId?: string; sectionId?: stri
   return data.data;
 }
 
-export async function getAttendanceSummary(params: { classId: string; sectionId: string; date?: string }) {
+export async function getAttendanceSummary(params: { classId: string; sectionId?: string; date?: string }) {
   const { data } = await api.get("/attendance/summary", { params });
   return data.data;
 }

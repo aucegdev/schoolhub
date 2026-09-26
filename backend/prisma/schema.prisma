@@ -88,6 +88,7 @@ model Student {
   attendances   Attendance[]
   examMarks     ExamMark[]
   feePayments   FeePayment[]
+  transport     StudentTransport[]
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -372,4 +373,150 @@ model Notification {
   link      String?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+model Vehicle {
+  id            String        @id @default(uuid())
+  vehicleNumber String        @unique
+  model         String?
+  capacity      Int
+  status        VehicleStatus @default(ACTIVE)
+  driverId      String?
+  driver        Driver?       @relation(fields: [driverId], references: [id])
+  routeId       String?
+  route         TransportRoute? @relation(fields: [routeId], references: [id])
+  allocations   StudentTransport[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Driver {
+  id            String   @id @default(uuid())
+  firstName     String
+  lastName      String
+  phone         String
+  licenseNumber String   @unique
+  experience    Int?
+  address       String?
+  vehicles      Vehicle[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model TransportRoute {
+  id          String   @id @default(uuid())
+  routeName   String   @unique
+  startPoint  String
+  endPoint    String
+  stops       String?  // comma-separated stop names
+  pickupTime  String   // HH:MM
+  dropTime    String   // HH:MM
+  fareMonthly Float    @default(0)
+  vehicles    Vehicle[]
+  allocations StudentTransport[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model StudentTransport {
+  id        String         @id @default(uuid())
+  studentId String
+  student   Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  routeId   String
+  route     TransportRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  vehicleId String
+  vehicle   Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  startDate DateTime       @default(now())
+  endDate   DateTime?
+  status    String         @default("ACTIVE")  // ACTIVE, INACTIVE
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  category  String   @default("GENERAL")
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorId     String?
+  actorRole   String?
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  resource    String   // STUDENT, TEACHER, EXAM, etc.
+  resourceId  String?
+  beforeState String?  // JSON
+  afterState  String?  // JSON
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+}
+
+enum NoticeTarget {
+  ALL
+  STUDENTS
+  TEACHERS
+  PARENTS
+  STAFF
+}
+
+model Notice {
+  id          String        @id @default(uuid())
+  title       String
+  content     String
+  priority    String        @default("NORMAL")  // NORMAL, URGENT, IMPORTANT
+  target      NoticeTarget  @default(ALL)
+  authorId    String?
+  publishedAt DateTime?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum EventType {
+  HOLIDAY
+  EXAM
+  MEETING
+  SPORTS
+  CULTURAL
+  GENERAL
+}
+
+model Event {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  eventType   EventType  @default(GENERAL)
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  targetRoles String?    // comma-separated roles
+  createdBy   String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  senderId     String
+  senderRole   String
+  recipientId  String?  // null = broadcast to all of a role
+  recipientRole String?
+  subject      String
+  body         String
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

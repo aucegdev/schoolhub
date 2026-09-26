@@ -20,6 +20,12 @@ import attendanceRoutes from "./modules/attendance/attendance.routes";
 import examinationRoutes from "./modules/examination/examination.routes";
 import feesRoutes from "./modules/fees/fees.routes";
 import notificationRoutes from "./modules/notification/notification.routes";
+import settingsRoutes from "./modules/settings/settings.routes";
+import transportRoutes from "./modules/transport/transport.routes";
+import auditLogRoutes from "./modules/audit-log/audit-log.routes";
+import noticeRoutes from "./modules/notice/notice.routes";
+import eventRoutes from "./modules/event/event.routes";
+import messagingRoutes from "./modules/messaging/messaging.routes";
 
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -65,6 +71,12 @@ app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/v1/exams", examinationRoutes);
 app.use("/api/v1/fees", feesRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/settings", settingsRoutes);
+app.use("/api/v1/transport", transportRoutes);
+app.use("/api/v1/audit-log", auditLogRoutes);
+app.use("/api/v1/notices", noticeRoutes);
+app.use("/api/v1/events", eventRoutes);
+app.use("/api/v1/messages", messagingRoutes);
 
 // Health check
 app.get("/api/v1/health", (_req, res) => {

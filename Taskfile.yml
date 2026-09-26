@@ -1,74 +1,201 @@
+# SchoolHub Taskfile — go-task runner commands
+# Install: https://taskfile.dev
+# Usage: task <task-name>
+# List: task --list
+
 version: '3'
 
 tasks:
-  default:
-    desc: "Display all available SchoolHub tasks"
-    cmds:
-      - task --list
+ default:
+ desc: "Display all available SchoolHub tasks"
+ cmds:
+ - task --list
 
-  run:dev:ui:
-    desc: "Run Frontend React Vite UI in development mode"
-    cmds:
-      - npm run dev --prefix frontend
+ # ============================================
+ # Environment Setup
+ # ============================================
+ env:setup:
+ desc: "Set up environment files from templates"
+ cmds:
+ - |
+ echo "--> Copying .env.example to .env.local..."
+ cp -n .env.example .env.local
+ - echo "--> Copying backend/.env.example to backend/.env..."
+ cp -n backend/.env.example backend/.env
+ - echo "--> Copying frontend/.env.example to frontend/.env..."
+ cp -n frontend/.env.example frontend/.env
+ - |
+ echo ""
+ echo "Environment files ready. Edit .env.local, backend/.env, and frontend/.env with your values."
+ echo "For production, create .env.production from .env.example"
 
-  run:dev:backend:
-    desc: "Run Backend Express API in development mode"
-    cmds:
-      - npm run dev --prefix backend
+ env:check:
+ desc: "Verify environment files exist and are configured"
+ cmds:
+ - |
+ test -f .env.local && echo " [OK] .env.local exists" || echo " [MISS] .env.local — run: task env:setup"
+ test -f backend/.env && echo " [OK] backend/.env exists" || echo " [MISS] backend/.env — run: task env:setup"
+ test -f frontend/.env && echo " [OK] frontend/.env exists" || echo " [MISS] frontend/.env — run: task env:setup"
+ - |
+ echo ""
+ echo "Checking for production secrets..."
+ test -f .env.production && echo " [OK] .env.production exists" || echo " [INFO] .env.production not found (needed for production deploy)"
 
-  run:dev:all:
-    desc: "Run full stack local development environment"
-    cmds:
-      - ./scripts/docker-run.sh
+ # ============================================
+ # Local Development
+ # ============================================
+ run:dev:ui:
+ desc: "Run Frontend React Vite UI in development mode"
+ cmds:
+ - npm run dev --prefix frontend
 
-  build:ui:
-    desc: "Build Frontend UI production bundle"
-    cmds:
-      - npm run build --prefix frontend
+ run:dev:backend:
+ desc: "Run Backend Express API in development mode"
+ cmds:
+ - npm run dev --prefix backend
 
-  build:backend:
-    desc: "Build Backend TypeScript & Prisma Client"
-    cmds:
-      - npm run build --prefix backend
+ run:dev:all:
+ desc: "Run full stack local development environment via Docker"
+ deps: [env:check]
+ cmds:
+ - ./scripts/docker-run.sh
 
-  build:all:
-    desc: "Build full stack (Backend & Frontend)"
-    cmds:
-      - npm run build
+ run:dev:tools:
+ desc: "Run local stack with PgAdmin (database management UI)"
+ deps: [env:check]
+ cmds:
+ - docker compose --profile tools up --build
 
-  lint:all:
-    desc: "Lint full stack codebase"
-    cmds:
-      - npm run lint
+ # ============================================
+ # Build
+ # ============================================
+ build:ui:
+ desc: "Build Frontend UI production bundle"
+ cmds:
+ - npm run build --prefix frontend
 
-  docker:up:
-    desc: "Launch Docker containers (Postgres + PgAdmin + Backend + Frontend)"
-    cmds:
-      - ./scripts/docker-run.sh
+ build:backend:
+ desc: "Build Backend TypeScript & Prisma Client"
+ cmds:
+ - npm run build --prefix backend
 
-  docker:prod:
-    desc: "Launch production multi-container stack with Nginx"
-    cmds:
-      - docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+ build:all:
+ desc: "Build full stack (Backend & Frontend)"
+ cmds:
+ - npm run build
 
-  docker:down:
-    desc: "Stop and clean up Docker containers"
-    cmds:
-      - docker compose down
+ lint:all:
+ desc: "Lint full stack codebase"
+ cmds:
+ - npm run lint
 
-  db:generate:
-    desc: "Generate Prisma Client from schema"
-    dir: backend
-    cmds:
-      - npx prisma generate
+ # ============================================
+ # Database
+ # ============================================
+ db:generate:
+ desc: "Generate Prisma Client from schema"
+ dir: backend
+ cmds:
+ - npx prisma generate
 
-  db:migrate:
-    desc: "Apply Prisma migrations"
-    dir: backend
-    cmds:
-      - npx prisma migrate dev
+ db:migrate:
+ desc: "Apply Prisma migrations (development)"
+ dir: backend
+ cmds:
+ - npx prisma migrate dev
 
-  verify:devops:
-    desc: "Run automated DevOps deployment verification audit"
-    cmds:
-      - ./scripts/verify-devops-deployment.sh
+ db:migrate:prod:
+ desc: "Apply Prisma migrations (production — deploy)"
+ dir: backend
+ cmds:
+ - npx prisma migrate deploy
+
+ db:seed:
+ desc: "Seed database with initial data"
+ dir: backend
+ cmds:
+ - npx prisma db seed
+
+ db:studio:
+ desc: "Open Prisma Studio for database management"
+ dir: backend
+ cmds:
+ - npx prisma studio
+
+ # ============================================
+ # Docker
+ # ============================================
+ docker:up:
+ desc: "Launch Docker containers (local development)"
+ deps: [env:check]
+ cmds:
+ - ./scripts/docker-run.sh
+
+ docker:prod:
+ desc: "Launch production multi-container stack with Nginx"
+ cmds:
+ - docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+
+ docker:down:
+ desc: "Stop and clean up Docker containers"
+ cmds:
+ - docker compose down
+ - docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+
+ docker:logs:
+ desc: "Show Docker container logs"
+ cmds:
+ - docker compose logs -f
+
+ # ============================================
+ # Azure DevOps Deployment
+ # ============================================
+ deploy:azure:
+ desc: "Trigger Azure DevOps pipeline deployment (requires Azure CLI + gh)"
+ cmds:
+ - echo "Triggering Azure DevOps pipeline..."
+ - az pipelines run --name SchoolHub-CI-CD --org https://dev.azure.com/schoolhub-dev-26 --project SchoolHub
+ - echo "Pipeline triggered. Check: https://dev.azure.com/schoolhub-dev-26/SchoolHub/_build"
+
+ deploy:gh:
+ desc: "Push current branch to trigger Azure DevOps CI/CD pipeline"
+ cmds:
+ - git push origin HEAD
+
+ # ============================================
+ # Testing
+ # ============================================
+ test:
+ desc: "Run backend tests"
+ dir: backend
+ cmds:
+ - npm test
+
+ test:frontend:
+ desc: "Run frontend tests"
+ dir: frontend
+ cmds:
+ - npm test
+
+ # ============================================
+ # Verification
+ # ============================================
+ verify:devops:
+ desc: "Run automated DevOps deployment verification audit"
+ cmds:
+ - ./scripts/verify-devops-deployment.sh
+
+ verify:env:
+ desc: "Verify environment configuration"
+ deps: [env:check]
+ cmds:
+ - |
+ echo "Environment variable checklist:"
+ echo ""
+ grep -q "CHANGE_ME" .env.production 2>/dev/null && \
+ echo " [WARN] .env.production still has placeholder values!" || \
+ echo " [OK] .env.production appears configured"
+ - |
+ echo ""
+ echo "Checking .gitignore for secrets..."
+ grep -q "backend/.env" .gitignore && echo " [OK] backend/.env in .gitignore" || echo " [FAIL] backend/.env NOT in .gitignore!"

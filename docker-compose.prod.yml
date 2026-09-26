@@ -15,9 +15,6 @@
 # HTTPS: nginx currently listens on port 80 only.
 #   When ready, configure Let's Encrypt via certbot and uncomment the 443
 #   block in nginx/nginx.conf, then add "- 443:443" to the nginx ports below.
-
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine

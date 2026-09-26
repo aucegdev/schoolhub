@@ -3,9 +3,6 @@
 # Run: docker compose up --build
 # Or:  task docker:up
 # With pgAdmin: docker compose --profile tools up --build
-
-version: "3.8"
-
 services:
   postgres:
     image: postgres:15-alpine

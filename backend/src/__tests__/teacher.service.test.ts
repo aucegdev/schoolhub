@@ -58,6 +58,6 @@ describe("Student Service", () => {
   it("deleteStudent calls prisma delete", async () => {
     (mockPrisma.student.findUnique as jest.Mock).mockResolvedValue({ id: "s1" });
     (mockPrisma.student.delete as jest.Mock).mockResolvedValue({ id: "s1" });
-    await expect(deleteStudent("s1")).resolves.toBeUndefined();
+    await expect(deleteStudent("s1")).resolves.toEqual({ id: "s1" });
   });
 });

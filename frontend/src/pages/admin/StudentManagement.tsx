@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Search, Trash2, Edit2, Phone, Mail, X } from "lucide-react";
+import { Plus, Search, Trash2, Edit2, Phone, Mail, X, Eye } from "lucide-react";
 import {
   listStudents,
   createStudent,
@@ -177,6 +177,9 @@ export default function StudentManagement() {
                       </span>
                     </td>
                     <td className="p-4 text-right space-x-2">
+                      <button onClick={() => setDetailStudent(st)} className="p-1.5 text-slate-400 hover:text-blue-600 transition" title="View">
+                        <Eye className="w-4 h-4" />
+                      </button>
                       <button onClick={() => handleOpenModal(st)} className="p-1.5 text-slate-400 hover:text-indigo-600 transition">
                         <Edit2 className="w-4 h-4" />
                       </button>

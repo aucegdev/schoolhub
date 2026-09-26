@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Trash2, Megaphone } from "lucide-react";
+import EmptyState from "../../../components/ui/EmptyState";
 import { listNotices, createNotice, deleteNotice, type Notice } from "../../../services/notice";
 
 export default function NoticesPage() {
@@ -60,7 +61,14 @@ export default function NoticesPage() {
 
       <div className="space-y-3">
         {notices.length === 0 ? (
-          <div className="bg-white p-8 border border-slate-200 rounded-xl text-center text-slate-400 text-sm">No active notices. Create one to inform the school.</div>
+          <EmptyState
+            icon={Megaphone}
+            title="No notices yet"
+            description="Create your first notice to inform students, teachers, or parents."
+            actionLabel="Publish Notice"
+            onAction={() => setShowForm(true)}
+            iconColor="text-amber-400"
+          />
         ) : (
           notices.map(n => (
             <div key={n.id} className={`bg-white border rounded-xl p-4 ${n.priority === "URGENT" ? "border-red-300 bg-red-50" : n.priority === "IMPORTANT" ? "border-amber-300 bg-amber-50" : "border-slate-200"}`}>

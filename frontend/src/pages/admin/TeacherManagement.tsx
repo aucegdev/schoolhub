@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Plus, Search, Trash2, Edit2, Phone, Mail } from "lucide-react";
+import { Plus, Search, Trash2, Edit2, Phone, Mail, Users } from "lucide-react";
+import EmptyState from "../../components/ui/EmptyState";
 import {
   listTeachers,
   createTeacher,
@@ -249,7 +250,18 @@ export default function TeacherManagement() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {(result?.teachers || []).length === 0 ? (
-                <tr><td colSpan={7} className="p-8 text-center text-slate-400">No teachers found.</td></tr>
+                <tr>
+                  <td colSpan={7} className="p-4">
+                    <EmptyState
+                      icon={Users}
+                      title="No teachers yet"
+                      description="Add your first teacher to start building your team."
+                      actionLabel="Add Teacher"
+                      onAction={() => { setTeacher(emptyTeacher); setEditingId(null); setShowForm(true); }}
+                      iconColor="text-blue-400"
+                    />
+                  </td>
+                </tr>
               ) : (
                 (result?.teachers || []).map((t) => (
                   <tr key={t.id} className="hover:bg-slate-50/50 transition">

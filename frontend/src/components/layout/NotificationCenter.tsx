@@ -22,6 +22,7 @@ export default function NotificationCenter() {
       setNotifications((prev) => [newNotif, ...prev]);
       setToastMessage(newNotif);
 
+      // Show confetti on approved leave
       if (newNotif.type === "LEAVE_STATUS" && newNotif.title.includes("APPROVED")) {
         triggerCelebrationConfetti();
       }

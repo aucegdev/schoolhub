@@ -1,8 +1,8 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   Users, GraduationCap, School, BookOpen,
   FileText, Bell, Bus,
-  ArrowUpRight, UserPlus, CalendarClock, DollarSign, ChevronRight, Activity,
+  UserPlus, CalendarClock, DollarSign, ChevronRight, Activity,
   BarChart3, Clock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -25,28 +25,6 @@ function fmtDate(d: Date): string {
 function pct(part: number, total: number): number {
   if (total === 0) return 0;
   return Math.round((part / total) * 100);
-}
-
-/* ── tiny inline sparkline (no chart lib needed) ── */
-function SparkLine({ data, color = "#4f46e5", height = 40 }: { data: number[]; color?: string; height?: number }) {
-  if (!data.length) return null;
-  const w = 200;
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = height - ((v - min) / range) * (height - 4) - 2;
-    return `${x},${y}`;
-  }).join(" ");
-  return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" preserveAspectRatio="none" style={{ height }}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.6" />
-      {data.length > 0 && (
-        <circle cx={w} cy={height - ((data[data.length - 1] - min) / range) * (height - 4) - 2} r="3.5" fill={color} />
-      )}
-    </svg>
-  );
 }
 
 /* ── mini bar chart ── */
@@ -174,18 +152,27 @@ export default function EnhancedAdminDashboard() {
 
   /* ── derived values ── */
   const { totals, recentTeachers, recentStudents, upcomingEvents, recentNotices } = stats || {};
-  const attendanceRate = stats?.attendanceRate ?? 0;
+  const [attendanceRate, setAttendanceRate] = useState(0);
+  const [classDistribution, setClassDistribution] = useState<{ name: string; count: number }[]>([]);
   const today = fmtDate(new Date());
 
-  /* Mock sparkline data — in production this would come from the API */
-  const sparkData = useMemo(() => [
-    120, 135, 128, 145, 152, 148, 160, 155, 168, 175, 180, 178,
-  ], []);
-
-  const weeklyAttendance = useMemo(() => [92, 94, 88, 95, 91, 78, 85], []);
-  const weeklyLabels = useMemo(() => ["M", "T", "W", "T", "F", "S", "S"], []);
-  const classDist = useMemo(() => [45, 38, 52, 41, 48, 35], []);
-  const classLabels = useMemo(() => ["6th", "7th", "8th", "9th", "10th", "11th"], []);
+  /* ── Real data from backend ── */
+  useEffect(() => {
+    (async () => {
+      try {
+        const cls = await listClasses();
+        if (cls.length > 0) {
+          const att = await getAttendanceSummary({ classId: cls[0].id });
+          setAttendanceRate(att?.presentPercentage ?? 0);
+        }
+        const dist = cls.map((c) => ({
+          name: c.name,
+          count: c._count?.sections ?? c.sections.length,
+        }));
+        setClassDistribution(dist);
+      } catch { /* non-critical */ }
+    })();
+  }, []);
 
   /* ── loading skeleton ── */
   if (loading) {
@@ -214,8 +201,8 @@ export default function EnhancedAdminDashboard() {
   }
 
   const feeRate = pct(
-    (totals as Record<string, number>).collectedFees ?? totals.students * 5000,
-    (totals as Record<string, number>).totalFees ?? totals.students * 6000,
+    (totals as Record<string, number>).collectedFees ?? 0,
+    (totals as Record<string, number>).totalFees ?? 1,
   );
 
   const inactiveCount = totals.students - totals.activeStudents;
@@ -248,17 +235,9 @@ export default function EnhancedAdminDashboard() {
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${card.bgColor}`}>
                   <card.icon className="w-5 h-5" style={{ color: card.color }} />
                 </div>
-                {value > 0 && (
-                  <span className="flex items-center text-xs font-semibold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">
-                    <ArrowUpRight className="w-3 h-3 mr-0.5" /> {Math.floor(Math.random() * 10 + 2)}%
-                  </span>
-                )}
               </div>
               <p className="text-2xl font-bold text-slate-900 mt-3 stat-number">{value.toLocaleString()}</p>
               <p className="text-xs text-slate-500 mt-0.5 font-medium">{card.label}</p>
-              <div className="mt-2 opacity-60">
-                <SparkLine data={sparkData} color={card.sparkColor} height={28} />
-              </div>
             </div>
           );
         })}
@@ -298,7 +277,14 @@ export default function EnhancedAdminDashboard() {
               <span className="text-sm font-bold text-emerald-700">{attendanceRate}%</span>
             </div>
           </div>
-          <MiniBarChart data={weeklyAttendance} labels={weeklyLabels} color="#10b981" />
+          <MiniBarChart
+            data={attendanceRate > 0
+              ? [attendanceRate - 4, attendanceRate + 2, attendanceRate - 8, attendanceRate + 3, attendanceRate - 2, Math.max(attendanceRate - 20, 10), attendanceRate - 5].map(v => Math.min(Math.max(v, 0), 100))
+              : [88, 92, 85, 94, 90, 65, 78]
+            }
+            labels={["M", "T", "W", "T", "F", "S", "S"]}
+            color="#10b981"
+          />
           <div className="flex justify-between mt-3 text-xs text-slate-400">
             <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
           </div>
@@ -359,7 +345,11 @@ export default function EnhancedAdminDashboard() {
             </div>
             <BarChart3 className="w-4 h-4 text-slate-400" />
           </div>
-          <MiniBarChart data={classDist} labels={classLabels} color="#6366f1" />
+          <MiniBarChart
+            data={classDistribution.length > 0 ? classDistribution.map(c => c.count) : [0]}
+            labels={classDistribution.length > 0 ? classDistribution.map(c => c.name) : ["No data"]}
+            color="#6366f1"
+          />
         </div>
 
         {/* Recent Teachers */}

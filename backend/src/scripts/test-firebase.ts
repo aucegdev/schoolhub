@@ -6,6 +6,7 @@
 // Load .env first — tsx doesn't do this automatically
 import "dotenv/config";
 import { getFirebaseAdminApp } from "../config/firebase";
+const { getAuth } = require("firebase-admin/auth");
 
 async function main() {
   console.log("Testing Firebase Admin SDK...\n");
@@ -34,7 +35,7 @@ async function main() {
 
   // Verify Auth module works
   try {
-    const auth = app.auth();
+    const auth = getAuth(app);
     console.log("  Auth module: available");
     console.log("\nAll checks passed!");
   } catch (err) {

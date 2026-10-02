@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { getStoredToken, signInWithGoogle, signOutWithGoogle } from "../services/auth";
+import { auth } from "../config/firebase";
+
+const SUPER_ADMIN_EMAIL = "kathirkalidass005@gmail.com";
 
 interface AuthContextType {
   token: string | null;
@@ -7,6 +10,7 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isSuperAdmin: boolean;
   loading: boolean;
 }
 
@@ -16,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: async () => {},
   isAuthenticated: false,
+  isSuperAdmin: false,
   loading: true,
 });
 
@@ -28,10 +33,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = getStoredToken();
     if (stored) {
       setToken(stored);
-      // Firebase user info would come from onAuthStateChanged listener
-      // For now, just set token presence
     }
-    setLoading(false);
+
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (!firebaseUser) {
+        setToken(null);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      const nextToken = await firebaseUser.getIdToken();
+      localStorage.setItem("token", nextToken);
+      setToken(nextToken);
+      setUser({ uid: firebaseUser.uid, email: firebaseUser.email });
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
   async function login() {
@@ -46,8 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  const isSuperAdmin = user?.email?.trim().toLowerCase() === SUPER_ADMIN_EMAIL;
+
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated: Boolean(token), loading }}>
+    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated: Boolean(token), isSuperAdmin, loading }}>
       {children}
     </AuthContext.Provider>
   );

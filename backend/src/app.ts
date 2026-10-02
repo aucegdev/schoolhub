@@ -26,6 +26,7 @@ import auditLogRoutes from "./modules/audit-log/audit-log.routes";
 import noticeRoutes from "./modules/notice/notice.routes";
 import eventRoutes from "./modules/event/event.routes";
 import messagingRoutes from "./modules/messaging/messaging.routes";
+import devPreviewRoutes from "./modules/dev-preview/dev-preview.routes";
 
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -77,6 +78,7 @@ app.use("/api/v1/audit-log", auditLogRoutes);
 app.use("/api/v1/notices", noticeRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/messages", messagingRoutes);
+app.use("/api/v1/dev-preview", devPreviewRoutes);
 
 // Health check
 app.get("/api/v1/health", (_req, res) => {

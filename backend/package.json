@@ -11,6 +11,7 @@
     "start:local": "prisma db push && node dist/src/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "seed": "tsx src/scripts/seed.ts",
     "lint": "tsc --noEmit",
     "test": "jest --coverage"
   },

@@ -28,10 +28,7 @@ function buildFirebaseConfig() {
     firebaseConfig.apiKey &&
       firebaseConfig.authDomain &&
       firebaseConfig.projectId &&
-      firebaseConfig.storageBucket &&
-      firebaseConfig.messagingSenderId &&
-      firebaseConfig.appId &&
-      firebaseConfig.measurementId
+      firebaseConfig.appId
   );
 
   return { firebaseConfig, hasFirebaseConfig, raw };

@@ -1,13 +1,14 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
+import { uploadsDirectory } from "../../config/uploads";
 import { authenticate } from "../../middleware/auth";
 import { adminOnly } from "../../middleware/adminOnly";
 import * as schoolController from "./school.controller";
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, path.join(__dirname, "../../../uploads"));
+    cb(null, uploadsDirectory);
   },
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);

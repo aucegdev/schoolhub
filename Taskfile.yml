@@ -20,13 +20,9 @@ tasks:
  - |
  echo "--> Copying .env.example to .env.local..."
  cp -n .env.example .env.local
- - echo "--> Copying backend/.env.example to backend/.env..."
- cp -n backend/.env.example backend/.env
- - echo "--> Copying frontend/.env.example to frontend/.env..."
- cp -n frontend/.env.example frontend/.env
  - |
  echo ""
- echo "Environment files ready. Edit .env.local, backend/.env, and frontend/.env with your values."
+ echo "Environment file ready. Configure local database, JWT, and Firebase values in .env.local."
  echo "For production, create .env.production from .env.example"
 
  env:check:
@@ -34,8 +30,6 @@ tasks:
  cmds:
  - |
  test -f .env.local && echo " [OK] .env.local exists" || echo " [MISS] .env.local — run: task env:setup"
- test -f backend/.env && echo " [OK] backend/.env exists" || echo " [MISS] backend/.env — run: task env:setup"
- test -f frontend/.env && echo " [OK] frontend/.env exists" || echo " [MISS] frontend/.env — run: task env:setup"
  - |
  echo ""
  echo "Checking for production secrets..."
@@ -45,26 +39,26 @@ tasks:
  # Local Development
  # ============================================
  run:dev:ui:
- desc: "Run Frontend React Vite UI in development mode"
+ desc: "Run the frontend with the complete containerized application"
  cmds:
- - npm run dev --prefix frontend
+ - ./scripts/docker-run.sh
 
  run:dev:backend:
- desc: "Run Backend Express API in development mode"
+ desc: "Run the backend with the complete containerized application"
  cmds:
- - npm run dev --prefix backend
+ - ./scripts/docker-run.sh
 
  run:dev:all:
- desc: "Run full stack local development environment via Docker"
- deps: [env:check]
+ desc: "Build and run the full containerized local stack"
+ deps: [env:setup]
  cmds:
  - ./scripts/docker-run.sh
 
  run:dev:tools:
- desc: "Run local stack with PgAdmin (database management UI)"
- deps: [env:check]
+ desc: "Run the containerized stack with PgAdmin"
+ deps: [env:setup]
  cmds:
- - docker compose --profile tools up --build
+ - docker compose --env-file .env.local --profile tools up --build -d
 
  # ============================================
  # Build
@@ -93,59 +87,60 @@ tasks:
  # Database
  # ============================================
  db:generate:
- desc: "Generate Prisma Client from schema"
- dir: backend
+ desc: "Generate the Prisma client inside the running backend container"
  cmds:
- - npx prisma generate
+ - docker compose --env-file .env.local exec -T backend npx prisma generate
 
  db:migrate:
- desc: "Apply Prisma migrations (development)"
- dir: backend
+ desc: "Sync the local database schema inside the running backend container"
  cmds:
- - npx prisma migrate dev
+ - docker compose --env-file .env.local exec -T backend npx prisma db push
 
  db:migrate:prod:
- desc: "Apply Prisma migrations (production — deploy)"
- dir: backend
+ desc: "Apply production migrations inside the running backend container"
  cmds:
- - npx prisma migrate deploy
+ - docker compose --env-file .env.production -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
 
  db:seed:
- desc: "Seed database with initial data"
- dir: backend
+ desc: "Seed the database from inside the running backend container"
  cmds:
- - npx prisma db seed
+ - docker compose --env-file .env.local exec -T backend npx prisma db seed
 
  db:studio:
- desc: "Open Prisma Studio for database management"
- dir: backend
+ desc: "Open Prisma Studio inside Docker on localhost:5555"
  cmds:
- - npx prisma studio
+ - docker compose --env-file .env.local exec backend npx prisma studio --browser none --hostname 0.0.0.0 --port 5555
 
  # ============================================
  # Docker
  # ============================================
  docker:up:
- desc: "Launch Docker containers (local development)"
- deps: [env:check]
+ desc: "Build and launch all local services in Docker"
+ deps: [env:setup]
  cmds:
  - ./scripts/docker-run.sh
 
- docker:prod:
- desc: "Launch production multi-container stack with Nginx"
+ docker:rebuild:
+ desc: "Rebuild all local application images without cache and launch the stack"
+ deps: [env:setup]
  cmds:
- - docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+ - docker compose --env-file .env.local build --no-cache
+ - docker compose --env-file .env.local up -d --remove-orphans
+
+ docker:prod:
+ desc: "Pull and launch the registry-backed production stack"
+ cmds:
+ - docker compose --env-file .env.production -f docker-compose.prod.yml up -d --pull always
 
  docker:down:
  desc: "Stop and clean up Docker containers"
  cmds:
- - docker compose down
- - docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+ - docker compose --env-file .env.local down
 
  docker:logs:
  desc: "Show Docker container logs"
  cmds:
- - docker compose logs -f
+ - docker compose --env-file .env.local logs -f
 
  # ============================================
  # Azure DevOps Deployment

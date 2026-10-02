@@ -12,9 +12,10 @@
     "lint:backend": "npm run lint --prefix backend",
     "lint:frontend": "npm run lint --prefix frontend",
     "lint": "npm run lint:backend && npm run lint:frontend",
-    "docker:dev": "docker compose up --build",
-    "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d",
-    "docker:down": "docker compose down",
+    "docker:dev": "docker compose up --build -d",
+    "docker:rebuild": "docker compose build --no-cache && docker compose up -d --remove-orphans",
+    "docker:prod": "docker compose --env-file .env.production -f docker-compose.prod.yml up -d --pull always",
+    "docker:down": "docker compose --env-file .env.local down",
     "verify:devops": "./scripts/verify-devops-deployment.sh"
   },
   "keywords": [

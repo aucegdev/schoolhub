@@ -39,6 +39,7 @@ echo ""
 echo "1. Dockerfiles..."
 check backend/Dockerfile "Backend Dockerfile exists"
 check frontend/Dockerfile "Frontend Dockerfile exists"
+check report-service/Dockerfile "Report service Dockerfile exists"
 
 echo ""
 echo "2. Docker Compose..."
@@ -46,15 +47,15 @@ check docker-compose.yml "Local compose file exists"
 check docker-compose.prod.yml "Production compose file exists"
 check_contains "schoolhub-postgres" docker-compose.prod.yml "Prod compose has postgres service"
 check_contains "env_file" docker-compose.prod.yml "Prod compose uses env_file"
-check_contains ".env.local" docker-compose.yml "Local compose references .env.local"
+check_contains "uploads_data" docker-compose.yml "Local compose persists uploads"
+check_contains "start:local" docker-compose.yml "Local backend initializes its schema in Docker"
+check_contains "prisma migrate deploy" backend/package.json "Production backend applies checked-in migrations"
 
 echo ""
 echo "3. Environment files..."
 check .env.example "Env template exists"
-check .env.local "Local env file exists"
 check .env.production "Production env file exists"
 check .env.test "Test env file exists"
-check backend/.env "Backend env file exists"
 
 echo ""
 echo "4. CI/CD Pipelines..."
@@ -84,12 +85,12 @@ check_contains "deploy:azure" Taskfile.yml "Taskfile has deploy:azure task"
 
 echo ""
 echo "8. Prisma..."
-if (cd backend && npx prisma validate 2>/dev/null); then
+if docker compose run --rm --no-deps --entrypoint npx backend prisma validate 2>/dev/null; then
 ok "Prisma schema validated"
 else
 fail "Prisma schema validation failed"
 fi
-if (cd backend && npx prisma generate 2>/dev/null); then
+if docker compose run --rm --no-deps --entrypoint npx backend prisma generate 2>/dev/null; then
 ok "Prisma client generated"
 else
 fail "Prisma client generation failed"

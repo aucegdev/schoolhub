@@ -55,51 +55,67 @@ SchoolHub uses separate environment files for local development and production:
 
 | File | Purpose | Used By |
 |------|---------|---------|
-| `.env.local` | Local development (hot-reload, localhost) | `docker compose up` |
+| `.env.local` | Local Docker configuration and Firebase build values | `task docker:up` |
 | `.env.production` | Azure production (secrets, nginx) | CI/CD, Ansible |
 | `.env.test` | CI/CD test stage | Azure Pipelines |
 | `.env.example` | Reference template | Copy to create others |
 
 **Quick setup:**
 ```bash
-# 1. Set up local environment
+# 1. Create local configuration from the template
 task env:setup
 
-# 2. Edit with your values
-nano .env.local
-nano backend/.env
-nano frontend/.env
+# 2. Configure JWT_SECRET and Firebase values in .env.local
+#    Set POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB if desired.
 
-# 3. Start PostgreSQL
-docker compose up postgres -d
-
-# 4. Start backend and frontend
-task run:dev:backend # Terminal 1
-task run:dev:ui # Terminal 2
-
-# Or full Docker stack
+# 3. Build all app images, install dependencies inside their build containers,
+#    apply database migrations, and start the complete stack.
 task docker:up
+
+# Application: http://localhost:3000
+# API health: http://localhost:3000/api/v1/health
+
+# Force a clean, uncached image build (including fresh dependency installs):
+task docker:rebuild
+
+# Optional database administration UI:
+task run:dev:tools
 ```
+
+All application runtime services (frontend, API, PDF report service, and
+PostgreSQL) run in containers. The local Compose file does not mount source code
+or host `node_modules`; the frontend and API are built as production images and
+served through Nginx. PostgreSQL data and uploaded files are stored in named
+Docker volumes and survive container recreation. Use
+`docker compose --env-file .env.local down -v` only when you intentionally want
+to delete that local data.
 
 **Production deploy:**
 ```bash
 # 1. Create .env.production with real secrets
 cp .env.example .env.production
-# Edit with production values...
+# Set a strong JWT_SECRET, POSTGRES_PASSWORD, DATABASE_URL and Firebase values.
 
 # 2. Push to main branch (triggers Azure DevOps pipeline)
 git push origin main
 ```
 
-## Local Setup (manual, no Docker)
+## Running the Production Images Locally
 
-1. Copy the env templates:
- - `task env:setup` (or manually: `cp .env.example .env.local && cp backend/.env.example backend/.env && cp frontend/.env.example frontend/.env`)
-2. Fill in your Firebase values and JWT secret.
-3. Start PostgreSQL and services:
- - `docker compose up postgres pgadmin -d`
- - `cd backend && npm install && npx prisma generate && npm run dev`
- - `cd frontend && npm install && npm run dev`
+The default `docker-compose.yml` builds the frontend and backend production
+images locally, so source changes are compiled and dependencies installed
+during `docker compose up --build`. To run the registry-backed Azure production
+stack instead, populate `.env.production` and use `task docker:prod`. The
+production Compose file pulls the tagged backend, frontend, and report-service
+images; committed database migrations run before the API begins serving
+traffic. The repository currently has no Prisma migration files, so local
+Compose bootstraps its disposable/local schema with `prisma db push`. Before
+deploying to Azure, create and commit a baseline Prisma migration; the
+production container intentionally fails startup rather than serving against
+an uninitialized database.
+
+The Azure pipeline's `VITE_FIREBASE_*` variables must also be configured in
+the pipeline settings to enable Google sign-in in the deployed frontend.
 ## Firebase Google Login
 
 SchoolHub supports Firebase Google authentication for the web portal. Set the following variables in your frontend env:
@@ -113,13 +129,26 @@ SchoolHub supports Firebase Google authentication for the web portal. Set the fo
 
 The backend verifies Firebase ID tokens when configured, while still supporting the existing JWT flow for internal API access.
 
+For Docker, the frontend values are compiled into the frontend image, so rebuild
+it after changing them (`docker compose up --build -d frontend`). Google
+Authentication only requires the Firebase Web App's API key, auth domain,
+project ID, and app ID; storage bucket, sender ID, and measurement ID are
+optional for sign-in. In Firebase Console, enable **Authentication → Google**
+and add the browser hostname (for example `localhost`) under **Authorized
+domains**. For protected API requests, configure the backend Admin SDK with
+`FIREBASE_PROJECT_ID` and either `FIREBASE_CLIENT_EMAIL` plus
+`FIREBASE_PRIVATE_KEY`, or Google Application Credentials. Firebase web config
+is public client config; never put Admin SDK private keys in `VITE_*` values.
+
 ## Deployment
 
 ### Local
 ```bash
-task env:setup # First-time setup
-task docker:up # Full stack with hot-reload
-task docker:down # Stop all
+task env:setup     # First-time local configuration
+task docker:up     # Build and run every service in containers
+task docker:logs   # Follow container logs
+task docker:down   # Stop containers; named data volumes remain
+task docker:rebuild # Rebuild local application images without cache
 ```
 
 ### Production (Azure)
@@ -128,7 +157,7 @@ task docker:down # Stop all
 git push origin main
 
 # Option B: Manual deploy via Ansible
-task env:setup # Ensure .env.production exists
+cp .env.example .env.production # Configure production secrets before deploying
 ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/provision.yml
 ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/deploy.yml
 ansible-playbook -i ansible/inventory/hosts.yml ansible/playbooks/ssl.yml

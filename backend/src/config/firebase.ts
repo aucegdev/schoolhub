@@ -17,16 +17,20 @@ export function getFirebaseAdminApp(): any {
   }
 
   try {
+    const credential =
+      clientEmail && privateKey
+        ? admin.cert({
+            projectId: projectId ?? "schoolhub",
+            clientEmail,
+            privateKey,
+          })
+        : process.env.GOOGLE_APPLICATION_CREDENTIALS
+          ? admin.applicationDefault()
+          : undefined;
+
     initializedApp = admin.initializeApp({
       projectId,
-      credential:
-        clientEmail && privateKey
-          ? admin.credential.cert({
-              projectId: projectId ?? "schoolhub",
-              clientEmail,
-              privateKey,
-            })
-          : undefined,
+      credential,
     });
     return initializedApp;
   } catch {

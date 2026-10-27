@@ -122,7 +122,7 @@ export default function ClassManagement() {
         </div>
         <button
           onClick={() => { resetClassForm(); setShowClassForm(true); }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 text-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
         >
           <Plus size={16} /> Add Class
         </button>
@@ -163,7 +163,7 @@ export default function ClassManagement() {
                 <button
                   onClick={handleSaveClass}
                   disabled={saving || !className.trim()}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm text-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {saving ? "Saving..." : editingClass ? "Update" : "Create"}
                 </button>
@@ -198,7 +198,7 @@ export default function ClassManagement() {
                 <button
                   onClick={handleSaveSection}
                   disabled={saving || !sectionName.trim()}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm text-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {saving ? "Saving..." : editingSection ? "Update" : "Add"}
                 </button>
@@ -240,7 +240,7 @@ export default function ClassManagement() {
                 <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => { setEditingClass(cls); setClassName(cls.name); setShowClassForm(true); }}
-                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-blue-50 rounded-lg transition-colors"
                   ><Pencil size={14} /></button>
                   <button
                     onClick={() => handleDeleteClass(cls.id)}
@@ -274,7 +274,7 @@ export default function ClassManagement() {
                                 setSectionName(sec.name);
                                 setShowSectionForm(cls.id);
                               }}
-                              className="p-1 text-slate-400 hover:text-blue-600 rounded"
+                              className="p-1 text-slate-400 hover:text-indigo-600 rounded"
                             ><Pencil size={12} /></button>
                             <button
                               onClick={() => handleDeleteSection(cls.id, sec.id)}

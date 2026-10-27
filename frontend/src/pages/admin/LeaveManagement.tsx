@@ -103,7 +103,7 @@ export default function LeaveManagement() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
         >
           <Plus size={16} /> New Leave Request
         </button>
@@ -184,14 +184,14 @@ export default function LeaveManagement() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Reason</label>
-                <textarea value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} rows={3} placeholder="Reason for leave" className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <textarea value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} rows={3} placeholder="Reason for leave" className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
               <div className="flex gap-3 justify-end">
                 <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
                 <button
                   onClick={handleSave}
                   disabled={saving || !form.teacherId || !form.startDate || !form.endDate || !form.reason.trim()}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {saving ? "Submitting..." : "Submit Request"}
                 </button>

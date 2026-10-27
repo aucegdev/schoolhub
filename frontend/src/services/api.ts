@@ -10,6 +10,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  const previewUserId = localStorage.getItem("schoolhub-dev-preview-user");
+  if (previewUserId && !config.url?.startsWith("/dev-preview/users")) {
+    config.headers["X-Dev-Preview-User"] = previewUserId;
+  }
   return config;
 });
 

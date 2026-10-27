@@ -44,9 +44,27 @@ services:
       - .env.production
     environment:
       NODE_ENV: production
+      REPORT_SERVICE_URL: http://report-service:8080
+      UPLOADS_DIR: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
+      report-service:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/v1/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - schoolhub-network
 
@@ -90,3 +108,4 @@ networks:
 
 volumes:
   postgres_data:
+  uploads_data:

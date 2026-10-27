@@ -43,11 +43,11 @@ make verify # Run DevOps verification audit
 
 docker-prod:
  @echo "Starting production stack..."
- docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+ docker compose --env-file .env.production -f docker-compose.prod.yml up -d --pull always
 
 docker-prod-down:
  @echo "Stopping production stack..."
- docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+ docker compose --env-file .env.production -f docker-compose.prod.yml down
 
 deploy-azure:
  @echo "Pushing to trigger Azure DevOps pipeline..."
@@ -55,7 +55,7 @@ deploy-azure:
 
 db-migrate-prod:
  @echo "Running production migrations..."
- cd backend && npx prisma migrate deploy
+ docker compose --env-file .env.production -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
 
 # Docker targets
 .PHONY: docker-up docker-down docker-logs
@@ -64,7 +64,7 @@ docker-up:
  @./scripts/docker-run.sh
 
 docker-down:
- @docker compose down
+ @docker compose --env-file .env.local down
 
 docker-logs:
  @docker compose logs -f

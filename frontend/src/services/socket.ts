@@ -8,6 +8,9 @@ export function getSocket(): Socket {
     socket = io(backendUrl, {
       autoConnect: true,
       transports: ["websocket", "polling"],
+      auth: {
+        token: localStorage.getItem("token"),
+      },
     });
 
     socket.on("connect", () => {
@@ -22,5 +25,20 @@ export function subscribeToNotifications(callback: (notification: any) => void) 
   s.on("notification:new", callback);
   return () => {
     s.off("notification:new", callback);
+  };
+}
+
+export interface RealtimeChange {
+  entity: string;
+  operation: string;
+  recordId?: string;
+  record?: unknown;
+}
+
+export function subscribeToDataChanges(callback: (change: RealtimeChange) => void) {
+  const s = getSocket();
+  s.on("data:changed", callback);
+  return () => {
+    s.off("data:changed", callback);
   };
 }

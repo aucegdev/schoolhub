@@ -75,14 +75,21 @@ pipeline {
         stage('Build Backend Image') {
           steps {
             dir('backend') {
-              sh "docker build -t ${DOCKER_REGISTRY}/${APP_NAME}-backend:${BUILD_NUMBER} ."
+              sh "docker build -t ${DOCKER_REGISTRY}/${APP_NAME}-backend:${BUILD_NUMBER} -t ${DOCKER_REGISTRY}/${APP_NAME}-backend:latest ."
             }
           }
         }
         stage('Build Frontend Image') {
           steps {
             dir('frontend') {
-              sh "docker build -t ${DOCKER_REGISTRY}/${APP_NAME}-frontend:${BUILD_NUMBER} ."
+              sh "docker build -t ${DOCKER_REGISTRY}/${APP_NAME}-frontend:${BUILD_NUMBER} -t ${DOCKER_REGISTRY}/${APP_NAME}-frontend:latest ."
+            }
+          }
+        }
+        stage('Build Report Service Image') {
+          steps {
+            dir('report-service') {
+              sh "docker build -t ${DOCKER_REGISTRY}/${APP_NAME}-report-service:${BUILD_NUMBER} -t ${DOCKER_REGISTRY}/${APP_NAME}-report-service:latest ."
             }
           }
         }
@@ -97,7 +104,11 @@ pipeline {
         script {
           withDockerRegistry(credentialsId: 'docker-registry-credentials', url: '') {
             sh "docker push ${DOCKER_REGISTRY}/${APP_NAME}-backend:${BUILD_NUMBER}"
+            sh "docker push ${DOCKER_REGISTRY}/${APP_NAME}-backend:latest"
             sh "docker push ${DOCKER_REGISTRY}/${APP_NAME}-frontend:${BUILD_NUMBER}"
+            sh "docker push ${DOCKER_REGISTRY}/${APP_NAME}-frontend:latest"
+            sh "docker push ${DOCKER_REGISTRY}/${APP_NAME}-report-service:${BUILD_NUMBER}"
+            sh "docker push ${DOCKER_REGISTRY}/${APP_NAME}-report-service:latest"
           }
         }
       }

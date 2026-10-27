@@ -2,8 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { getFirebaseAdminApp } from "../config/firebase";
 import { UnauthorizedError } from "../utils/errors";
+import { resolveRole } from "../config/authorization";
+import prisma from "../config/database";
 
 const admin: any = require("firebase-admin");
+const { getAuth } = require("firebase-admin/auth");
 
 export interface AuthRequest extends Request {
   user?: {
@@ -18,6 +21,30 @@ interface AuthTokenPayload extends JwtPayload {
   userId?: string;
   email?: string;
   role?: string;
+}
+
+async function applyDevelopmentPreview(req: AuthRequest): Promise<void> {
+  if (process.env.NODE_ENV === "production" || req.user?.role !== "SUPER_ADMIN") {
+    return;
+  }
+
+  const previewUserId = req.headers["x-dev-preview-user"];
+  if (typeof previewUserId !== "string" || !previewUserId) {
+    return;
+  }
+
+  const previewUser = await prisma.user.findUnique({
+    where: { id: previewUserId },
+    select: { id: true, email: true, role: true, isActive: true },
+  });
+
+  if (previewUser?.isActive) {
+    req.user = {
+      id: previewUser.id,
+      email: previewUser.email,
+      role: previewUser.role.toUpperCase(),
+    };
+  }
 }
 
 export async function authenticate(req: AuthRequest, _res: Response, next: NextFunction): Promise<void> {
@@ -35,10 +62,11 @@ export async function authenticate(req: AuthRequest, _res: Response, next: NextF
     if (jwtSecret) {
       const decoded = jwt.verify(token, jwtSecret) as AuthTokenPayload;
       const userId = decoded.id ?? decoded.userId ?? decoded.sub ?? "unknown-user";
-      const role = (decoded.role ?? "ADMIN").toString().toUpperCase();
       const email = decoded.email ?? "unknown@schoolhub.local";
+      const role = resolveRole(email, decoded.role ?? "ADMIN");
 
       req.user = { id: userId, role, email };
+      await applyDevelopmentPreview(req);
       next();
       return;
     }
@@ -53,9 +81,10 @@ export async function authenticate(req: AuthRequest, _res: Response, next: NextF
   }
 
   try {
-    const decodedFirebase = await admin.auth().verifyIdToken(token);
+    const decodedFirebase = await getAuth(firebaseApp).verifyIdToken(token);
     const firebaseClaims = decodedFirebase as JwtPayload & { role?: string };
-    const role = (firebaseClaims.role ?? "USER").toString().toUpperCase();
+    const verifiedEmail = decodedFirebase.email_verified ? decodedFirebase.email : undefined;
+    const role = resolveRole(verifiedEmail, firebaseClaims.role);
 
     req.user = {
       id: decodedFirebase.uid,
@@ -63,6 +92,7 @@ export async function authenticate(req: AuthRequest, _res: Response, next: NextF
       email: decodedFirebase.email ?? "unknown@schoolhub.local",
     };
 
+    await applyDevelopmentPreview(req);
     next();
   } catch {
     next(new UnauthorizedError("Invalid token"));

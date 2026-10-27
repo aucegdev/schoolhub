@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate, NavLink, Link } from "react-router-dom";
 import { signOutWithGoogle } from "../../services/auth";
+import { useAuth } from "../../contexts/AuthContext";
+import { getPreviewUserId, listPreviewUsers, setPreviewUserId, type PreviewUser } from "../../services/devPreview";
 import NotificationCenter from "./NotificationCenter";
 import {
   LayoutDashboard, GraduationCap, Users, School, BookOpen,
   CalendarDays, ClipboardList, CreditCard, FileText, Settings,
   Bus, MessageSquare, Megaphone, CalendarPlus, Globe,
-  ChevronRight, LogOut, Menu, X as CloseIcon,
+  ChevronRight, LogOut, Menu, X as CloseIcon,ChevronDown, UserRound,
 } from "lucide-react";
 
 const SIDEBAR_NAV_GROUPS = [
@@ -50,9 +52,30 @@ const SIDEBAR_NAV_GROUPS = [
 export default function AdminLayout() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-
   // Close sidebar on route change
   useEffect(() => { setMobileOpen(false); }, []);
+  const { user, isSuperAdmin } = useAuth();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [previewUsers, setPreviewUsers] = useState<PreviewUser[]>([]);
+  const [previewUserId, setPreviewUserIdState] = useState<string | null>(getPreviewUserId());
+  const isDevelopmentPreview = import.meta.env.DEV && isSuperAdmin;
+  const previewUser = previewUsers.find((preview) => preview.id === previewUserId);
+
+  useEffect(() => {
+    if (!isDevelopmentPreview) return;
+
+    listPreviewUsers()
+      .then(setPreviewUsers)
+      .catch((error) => console.error("Unable to load development preview users", error));
+  }, [isDevelopmentPreview]);
+
+  const handlePreviewChange = (nextUserId: string) => {
+    const nextPreviewUserId = nextUserId || null;
+    setPreviewUserId(nextPreviewUserId);
+    setPreviewUserIdState(nextPreviewUserId);
+    setProfileOpen(false);
+    window.location.reload();
+  };
 
   const handleLogout = async () => {
     await signOutWithGoogle();
@@ -168,23 +191,114 @@ export default function AdminLayout() {
       {/* Main content area */}
       <main className="flex-1 h-full overflow-y-auto">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80">
-          <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-14">
-            <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
+          <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
+            {/* Left section */}
+            <div className="flex min-w-0 items-center gap-3">
               <button
+                type="button"
                 onClick={() => setMobileOpen(true)}
-                className="lg:hidden p-2 -ml-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                aria-label="Open navigation menu"
+                className="-ml-2 rounded-lg p-2 text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-600 lg:hidden"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="h-5 w-5" />
               </button>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">
+
+              <span className="hidden text-xs font-semibold uppercase tracking-wider text-slate-400 sm:block">
                 Admin Workspace
               </span>
+
+              {isSuperAdmin && (
+                <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                  Super admin
+                </span>
+              )}
+
+              {user?.email && (
+                <span className="hidden max-w-48 truncate text-xs text-slate-500 md:inline">
+                  {user.email}
+                </span>
+              )}
             </div>
-            <NotificationCenter />
+
+            {/* Right section */}
+            <div className="flex shrink-0 items-center gap-3">
+              <NotificationCenter />
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((open) => !open)}
+                  aria-expanded={profileOpen}
+                  aria-haspopup="menu"
+                  aria-controls="admin-profile-menu"
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left shadow-sm transition hover:border-slate-300"
+                >
+                  <UserRound className="h-4 w-4 text-slate-500" />
+
+                  <span className="hidden max-w-40 truncate text-xs font-medium text-slate-700 sm:inline">
+                    {previewUser?.email ?? user?.email ?? "Account"}
+                  </span>
+
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
+                      profileOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {profileOpen && (
+                  <div
+                    id="admin-profile-menu"
+                    role="menu"
+                    className="absolute right-0 top-11 z-40 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+                  >
+                    <div className="mb-3 border-b border-slate-100 pb-3">
+                      <p className="text-xs font-semibold text-slate-900">
+                        Signed in as
+                      </p>
+
+                      <p className="mt-1 truncate text-xs text-slate-500">
+                        {user?.email ?? "Unknown account"}
+                      </p>
+                    </div>
+
+                    {isDevelopmentPreview ? (
+                      <label className="block text-xs font-semibold text-slate-600">
+                        Switch user
+
+                        <select
+                          value={previewUserId ?? ""}
+                          onChange={(event) =>
+                            handlePreviewChange(event.target.value)
+                          }
+                          className="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm font-normal text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                        >
+                          <option value="">
+                            My super-admin account
+                          </option>
+
+                          {previewUsers.map((preview) => (
+                            <option key={preview.id} value={preview.id}>
+                              {preview.role} · {preview.email}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : (
+                      <p className="text-xs leading-5 text-slate-500">
+                        User switching is available only in development.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </header>
-        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
+        {/* Main page content */}
+        <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
           <Outlet />
         </div>
       </main>

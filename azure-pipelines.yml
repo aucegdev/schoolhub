@@ -27,6 +27,16 @@ variables:
   dockerRegistry: 'schoolhubdev'
   backendImage: 'schoolhub-backend'
   frontendImage: 'schoolhub-frontend'
+  reportServiceImage: 'schoolhub-report-service'
+
+  # Configure these frontend Firebase values as pipeline variables.
+  VITE_FIREBASE_API_KEY: ''
+  VITE_FIREBASE_AUTH_DOMAIN: ''
+  VITE_FIREBASE_PROJECT_ID: ''
+  VITE_FIREBASE_STORAGE_BUCKET: ''
+  VITE_FIREBASE_MESSAGING_SENDER_ID: ''
+  VITE_FIREBASE_APP_ID: ''
+  VITE_FIREBASE_MEASUREMENT_ID: ''
 
   # Build tag — unique per pipeline run
   TAG: '$(Build.BuildId)'
@@ -113,8 +123,8 @@ stages:
 
           - script: |
               cd backend
-              npx prisma migrate deploy
-            displayName: 'Run DB migrations (test DB)'
+              npx prisma db push
+            displayName: 'Sync Prisma schema (test DB)'
             env:
               DATABASE_URL: 'postgresql://postgres:schoolhub_test@localhost:5432/schoolhub_test?schema=public'
 
@@ -218,6 +228,29 @@ stages:
                 $(TAG)
                 latest
 
+          # ── Report service ───────────────────────────────────
+          - task: Docker@2
+            displayName: 'Build report service image'
+            inputs:
+              containerRegistry: '$(dockerRegistryConnection)'
+              repository: '$(dockerRegistry)/$(reportServiceImage)'
+              command: build
+              Dockerfile: 'report-service/Dockerfile'
+              buildContext: 'report-service'
+              tags: |
+                $(TAG)
+                latest
+
+          - task: Docker@2
+            displayName: 'Push report service image'
+            inputs:
+              containerRegistry: '$(dockerRegistryConnection)'
+              repository: '$(dockerRegistry)/$(reportServiceImage)'
+              command: push
+              tags: |
+                $(TAG)
+                latest
+
           - task: Docker@2
             displayName: 'Push backend image'
             inputs:
@@ -239,7 +272,15 @@ stages:
               command: build
               Dockerfile: 'frontend/Dockerfile'
               buildContext: 'frontend'
-              arguments: '--build-arg VITE_API_URL=/api/v1'
+              arguments: >-
+                --build-arg VITE_API_URL=/api/v1
+                --build-arg VITE_FIREBASE_API_KEY=$(VITE_FIREBASE_API_KEY)
+                --build-arg VITE_FIREBASE_AUTH_DOMAIN=$(VITE_FIREBASE_AUTH_DOMAIN)
+                --build-arg VITE_FIREBASE_PROJECT_ID=$(VITE_FIREBASE_PROJECT_ID)
+                --build-arg VITE_FIREBASE_STORAGE_BUCKET=$(VITE_FIREBASE_STORAGE_BUCKET)
+                --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID=$(VITE_FIREBASE_MESSAGING_SENDER_ID)
+                --build-arg VITE_FIREBASE_APP_ID=$(VITE_FIREBASE_APP_ID)
+                --build-arg VITE_FIREBASE_MEASUREMENT_ID=$(VITE_FIREBASE_MEASUREMENT_ID)
               tags: |
                 $(TAG)
                 latest
@@ -258,9 +299,8 @@ stages:
   # Stage 5: Deploy  (main branch only)
   # SSH into the Azure VM and:
   #   1. Pull the exact images built in this pipeline run
-  #   2. Run Prisma migrations (failure = pipeline failure)
-  #   3. Bring up services with --force-recreate
-  #   4. Health-check — failure = pipeline failure
+  #   2. Bring up services; backend applies migrations before listening
+  #   3. Health-check — failure = pipeline failure
   #
   # Prerequisites on VM:
   #   /opt/schoolhub/.env.production  — created manually, not by CI
@@ -313,19 +353,14 @@ stages:
                       # pulls schoolhubdev/schoolhub-*:<BuildId> not 'latest'.
                       export TAG=$(TAG)
 
-                      echo "[1/4] Pulling images tag=$(TAG) ..."
+                      echo "[1/3] Pulling images tag=$(TAG) ..."
                       docker compose -f docker-compose.prod.yml pull
 
-                      echo "[2/4] Starting services ..."
+                      echo "[2/3] Starting services and applying migrations ..."
                       docker compose -f docker-compose.prod.yml up -d --force-recreate
 
-                      echo "[3/4] Waiting for containers to initialise (15s) ..."
-                      sleep 15
-
-                      echo "[4/4] Running Prisma migrations ..."
-                      # Do NOT use || true here — a migration failure must fail the deploy.
-                      docker compose -f docker-compose.prod.yml exec -T backend \
-                        npx prisma migrate deploy
+                      echo "[3/3] Waiting for backend health check ..."
+                      docker compose -f docker-compose.prod.yml ps
 
                       echo ""
                       echo "=== Deployment Complete ==="
@@ -341,13 +376,18 @@ stages:
                     inline: |
                       set -e
 
-                      echo "Waiting 10s for Nginx to be ready ..."
-                      sleep 10
-
-                      echo "Running health check ..."
-                      curl -sf http://localhost/api/v1/health \
-                        && echo "[OK] Backend is healthy" \
-                        || { echo "[FAIL] Backend did not respond — rolling back check"; exit 1; }
+                      echo "Waiting up to 180s for the API health check ..."
+                      for attempt in $(seq 1 36); do
+                        if curl -sf http://localhost/api/v1/health; then
+                          echo "[OK] Backend is healthy"
+                          break
+                        fi
+                        if [ "$attempt" -eq 36 ]; then
+                          echo "[FAIL] Backend did not become healthy"
+                          exit 1
+                        fi
+                        sleep 5
+                      done
 
                       echo ""
                       docker compose -f /opt/schoolhub/docker-compose.prod.yml ps

@@ -24,6 +24,7 @@
 .env.test
 Thesis_Title/.tmp_preview/
 backend/.env
+backend/serviceAccountKey.json
 backend/generated/
 build/
 coverage/

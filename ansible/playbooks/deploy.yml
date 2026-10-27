@@ -53,35 +53,23 @@
  when: env_prod.stat.exists
 
  - name: Pull Docker images
- command: docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+ command: docker compose --env-file .env.production -f docker-compose.prod.yml pull
  args:
  chdir: "{{ app_dir }}"
  become_user: schoolhub
-
- - name: Wait for any running backend to drain
- command: docker compose -f docker-compose.yml -f docker-compose.prod.yml down backend
- args:
- chdir: "{{ app_dir }}"
- become_user: schoolhub
- ignore_errors: yes
 
  - name: Start all services
- command: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+ command: docker compose --env-file .env.production -f docker-compose.prod.yml up -d --force-recreate
  args:
  chdir: "{{ app_dir }}"
  become_user: schoolhub
 
- - name: Wait for postgres to be ready
- command: docker exec schoolhub-postgres pg_isready -U postgres
- register: db_status
+ - name: Wait for backend health check
+ command: docker inspect --format='{{ "{{" }}.State.Health.Status{{ "}}" }}' schoolhub-backend
+ register: backend_health
  retries: 10
  delay: 5
- until: db_status.rc == 0
-
- - name: Run Prisma migrations
- command: docker exec schoolhub-backend npx prisma migrate deploy
- become_user: root
- ignore_errors: yes
+ until: backend_health.stdout == "healthy"
 
  - name: Verify backend container is running
  command: docker ps -q -f name=schoolhub-backend
@@ -108,4 +96,4 @@
  - "Backend: {{ backend_running.stdout != '' | ternary('RUNNING', 'FAILED') }}"
  - "Frontend: {{ frontend_running.stdout != '' | ternary('RUNNING', 'FAILED') }}"
  - "Nginx: {{ nginx_running.stdout != '' | ternary('RUNNING', 'FAILED') }}"
- - "Database: {{ db_status.rc == 0 | ternary('READY', 'FAILED') }}"
+ - "Backend health: {{ backend_health.stdout }}"

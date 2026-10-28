@@ -46,7 +46,7 @@ services:
     ports:
       - "127.0.0.1:5555:5555"
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4000
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-schoolhub_pass}@postgres:5432/${POSTGRES_DB:-schoolhub}?schema=public
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
@@ -54,11 +54,12 @@ services:
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
       FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
-      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-/run/secrets/firebase/serviceAccountKey.json}
       REPORT_SERVICE_URL: http://report-service:8080
       UPLOADS_DIR: /app/uploads
     volumes:
       - uploads_data:/app/uploads
+      - ./backend/serviceAccountKey.json:/run/secrets/firebase/serviceAccountKey.json:ro
     depends_on:
       postgres:
         condition: service_healthy

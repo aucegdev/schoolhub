@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -28,7 +29,7 @@
   --color-text: #0f172a;
   --color-text-muted: #64748b;
   --color-text-subtle: #94a3b8;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: "DM Sans", ui-sans-serif, sans-serif;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04);
@@ -56,6 +57,125 @@ body {
   background: var(--color-surface-alt);
   color: var(--color-text);
   line-height: 1.6;
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Shared application geometry. Individual pages can still use Tailwind utilities,
+   but these rules keep their type, tables, forms, and shell aligned. */
+.app-shell {
+  min-height: 100dvh;
+  background: #f5f7fb;
+}
+
+.app-sidebar {
+  width: 248px;
+  flex: 0 0 248px;
+  border-right: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.app-main {
+  min-width: 0;
+  background: #f5f7fb;
+}
+
+.app-topbar {
+  min-height: 64px;
+}
+
+.app-topbar-inner {
+  width: min(100%, 1520px);
+  min-height: 64px;
+  margin: 0 auto;
+}
+
+.app-content {
+  width: min(100%, 1520px);
+  margin: 0 auto;
+  padding: clamp(1rem, 2.2vw, 2rem) clamp(1rem, 3vw, 2.75rem) 3rem;
+}
+
+main h1,
+main h2,
+main h3,
+main h4 {
+  font-family: "Space Grotesk", var(--font-sans);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+main h1 {
+  font-size: clamp(1.55rem, 2vw, 2rem);
+}
+
+main h2 {
+  font-size: clamp(1.1rem, 1.3vw, 1.35rem);
+}
+
+main h3 {
+  font-size: 1rem;
+}
+
+main p {
+  max-width: 72ch;
+}
+
+main table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 680px;
+}
+
+main th {
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+main td {
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+main input,
+main select,
+main textarea {
+  color: #1e293b;
+  line-height: 1.35;
+}
+
+main input::placeholder,
+main textarea::placeholder {
+  color: #94a3b8;
+}
+
+main input[type="checkbox"],
+main input[type="radio"] {
+  accent-color: #0f766e;
+}
+
+main button:not([aria-label]) {
+  min-height: 2.5rem;
+}
+
+.card-lift:hover {
+  transform: translateY(-1px);
 }
 
 /* ── Animations ─────────────────────────────── */
@@ -170,6 +290,49 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-sidebar {
+    width: 76px;
+    flex-basis: 76px;
+  }
+
+  .app-sidebar .sidebar-brand-copy,
+  .app-sidebar .sidebar-group-label,
+  .app-sidebar .sidebar-link-label,
+  .app-sidebar .sidebar-utility-label {
+    display: none;
+  }
+
+  .app-sidebar .sidebar-brand,
+  .app-sidebar .sidebar-link,
+  .app-sidebar .sidebar-utility {
+    justify-content: center;
+  }
+
+  .app-sidebar .sidebar-link svg:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-sidebar {
+    width: 60px;
+    flex-basis: 60px;
+  }
+
+  .app-topbar-inner {
+    padding-inline: 0.75rem;
+  }
+
+  .app-content {
+    padding-inline: 0.75rem;
+  }
+
+  main table {
+    min-width: 620px;
   }
 }
 

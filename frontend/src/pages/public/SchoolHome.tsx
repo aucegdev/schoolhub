@@ -248,30 +248,30 @@ export default function SchoolHome() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-xl shadow-md">
               S
             </div>
-            <span className="font-extrabold text-xl tracking-tight text-slate-900">SchoolHub</span>
+              <span className="hidden font-extrabold text-xl tracking-tight text-slate-900 sm:inline">SchoolHub</span>
           </div>
 
           <div className="flex items-center gap-4">
             <NotificationCenter />
             <Link
               to="/login"
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition"
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 sm:px-4 rounded-lg text-sm font-semibold shadow-sm transition"
             >
-              <LogIn className="w-4 h-4" /> Portal Sign In
+              <LogIn className="w-4 h-4" /> <span className="hidden sm:inline">Portal Sign In</span><span className="sm:hidden">Sign in</span>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Header with 3D WebGL Canvas Layer */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/60 via-white to-slate-50 py-16 border-b border-slate-100">
+      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/60 via-white to-slate-50 py-12 lg:py-16 border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" /> 3D Powered School Management Hub
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="max-w-3xl text-4xl md:text-5xl xl:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.05]">
               {config.heroTitle}
             </h1>
 
@@ -290,7 +290,7 @@ export default function SchoolHome() {
           </div>
           {/* Interactive 3D WebGL Canvas Layer */}
           <div className="lg:col-span-5 relative flex justify-center">
-            <div className="w-full max-w-md h-[400px] bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-pink-500/20 backdrop-blur-xl rounded-3xl border border-white/40 p-3 shadow-2xl shadow-indigo-950/20 animate-pulse-glow">
+            <div className="w-full max-w-md h-[320px] sm:h-[400px] bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-pink-500/20 backdrop-blur-xl rounded-3xl border border-white/40 p-3 shadow-2xl shadow-indigo-950/20 animate-pulse-glow">
               <ThreeSchoolWorld />
             </div>
           </div>

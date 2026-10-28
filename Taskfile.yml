@@ -1,196 +1,127 @@
-# SchoolHub Taskfile — go-task runner commands
-# Install: https://taskfile.dev
-# Usage: task <task-name>
-# List: task --list
-
+# SchoolHub Taskfile - go-task runner commands
 version: '3'
 
 tasks:
- default:
- desc: "Display all available SchoolHub tasks"
- cmds:
- - task --list
+  default:
+    desc: Display all available SchoolHub tasks
+    cmds:
+      - task --list
 
- # ============================================
- # Environment Setup
- # ============================================
- env:setup:
- desc: "Set up environment files from templates"
- cmds:
- - |
- echo "--> Copying .env.example to .env.local..."
- cp -n .env.example .env.local
- - |
- echo ""
- echo "Environment file ready. Configure local database, JWT, and Firebase values in .env.local."
- echo "For production, create .env.production from .env.example"
+  env:setup:
+    desc: Set up environment files from templates
+    cmds:
+      - cp -n .env.example .env.local || true
+      - echo "Environment file ready. Configure local database, JWT, and Firebase values in .env.local."
 
- env:check:
- desc: "Verify environment files exist and are configured"
- cmds:
- - |
- test -f .env.local && echo " [OK] .env.local exists" || echo " [MISS] .env.local — run: task env:setup"
- - |
- echo ""
- echo "Checking for production secrets..."
- test -f .env.production && echo " [OK] .env.production exists" || echo " [INFO] .env.production not found (needed for production deploy)"
+  env:check:
+    desc: Verify local environment files
+    cmds:
+      - test -f .env.local && echo "[OK] .env.local exists" || echo "[MISS] .env.local - run task env:setup"
+      - test -f .env.production && echo "[OK] .env.production exists" || echo "[INFO] .env.production not found"
 
- # ============================================
- # Local Development
- # ============================================
- run:dev:ui:
- desc: "Run the frontend with the complete containerized application"
- cmds:
- - ./scripts/docker-run.sh
+  run:dev:all:
+    desc: Build and run the full containerized local stack
+    deps: [env:setup]
+    cmds:
+      - ./scripts/docker-run.sh
 
- run:dev:backend:
- desc: "Run the backend with the complete containerized application"
- cmds:
- - ./scripts/docker-run.sh
+  run:dev:ui:
+    desc: Run the frontend with the complete containerized application
+    cmds:
+      - ./scripts/docker-run.sh
 
- run:dev:all:
- desc: "Build and run the full containerized local stack"
- deps: [env:setup]
- cmds:
- - ./scripts/docker-run.sh
+  run:dev:backend:
+    desc: Run the backend with the complete containerized application
+    cmds:
+      - ./scripts/docker-run.sh
 
- run:dev:tools:
- desc: "Run the containerized stack with PgAdmin"
- deps: [env:setup]
- cmds:
- - docker compose --env-file .env.local --profile tools up --build -d
+  run:dev:tools:
+    desc: Run the local stack with PgAdmin
+    deps: [env:setup]
+    cmds:
+      - docker compose --env-file .env.local --profile tools up --build -d
 
- # ============================================
- # Build
- # ============================================
- build:ui:
- desc: "Build Frontend UI production bundle"
- cmds:
- - npm run build --prefix frontend
+  build:ui:
+    desc: Build the frontend production bundle
+    cmds:
+      - npm run build --prefix frontend
 
- build:backend:
- desc: "Build Backend TypeScript & Prisma Client"
- cmds:
- - npm run build --prefix backend
+  build:backend:
+    desc: Build the backend TypeScript bundle
+    cmds:
+      - npm run build --prefix backend
 
- build:all:
- desc: "Build full stack (Backend & Frontend)"
- cmds:
- - npm run build
+  build:all:
+    desc: Build the complete application
+    cmds:
+      - npm run build
 
- lint:all:
- desc: "Lint full stack codebase"
- cmds:
- - npm run lint
+  lint:all:
+    desc: Run all linters
+    cmds:
+      - npm run lint
 
- # ============================================
- # Database
- # ============================================
- db:generate:
- desc: "Generate the Prisma client inside the running backend container"
- cmds:
- - docker compose --env-file .env.local exec -T backend npx prisma generate
+  db:generate:
+    desc: Generate Prisma client in the running backend container
+    cmds:
+      - docker compose --env-file .env.local exec -T backend npx prisma generate
 
- db:migrate:
- desc: "Sync the local database schema inside the running backend container"
- cmds:
- - docker compose --env-file .env.local exec -T backend npx prisma db push
+  db:migrate:
+    desc: Sync the local database schema
+    cmds:
+      - docker compose --env-file .env.local exec -T backend npx prisma db push
 
- db:migrate:prod:
- desc: "Apply production migrations inside the running backend container"
- cmds:
- - docker compose --env-file .env.production -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+  db:seed:
+    desc: Seed local development data
+    cmds:
+      - docker compose --env-file .env.local exec -T backend npm run seed
 
- db:seed:
- desc: "Seed the database from inside the running backend container"
- cmds:
- - docker compose --env-file .env.local exec -T backend npx prisma db seed
+  db:studio:
+    desc: Open Prisma Studio in the backend container
+    cmds:
+      - docker compose --env-file .env.local exec backend npx prisma studio --browser none --hostname 0.0.0.0 --port 5555
 
- db:studio:
- desc: "Open Prisma Studio inside Docker on localhost:5555"
- cmds:
- - docker compose --env-file .env.local exec backend npx prisma studio --browser none --hostname 0.0.0.0 --port 5555
+  docker:up:
+    desc: Build and launch all local Docker services
+    deps: [env:setup]
+    cmds:
+      - ./scripts/docker-run.sh
 
- # ============================================
- # Docker
- # ============================================
- docker:up:
- desc: "Build and launch all local services in Docker"
- deps: [env:setup]
- cmds:
- - ./scripts/docker-run.sh
+  docker:rebuild:
+    desc: Rebuild all local application images without cache
+    deps: [env:setup]
+    cmds:
+      - docker compose --env-file .env.local build --no-cache
+      - docker compose --env-file .env.local up -d --remove-orphans
 
- docker:rebuild:
- desc: "Rebuild all local application images without cache and launch the stack"
- deps: [env:setup]
- cmds:
- - docker compose --env-file .env.local build --no-cache
- - docker compose --env-file .env.local up -d --remove-orphans
+  docker:down:
+    desc: Stop and remove local Docker services
+    cmds:
+      - docker compose --env-file .env.local down
 
- docker:prod:
- desc: "Pull and launch the registry-backed production stack"
- cmds:
- - docker compose --env-file .env.production -f docker-compose.prod.yml up -d --pull always
+  docker:logs:
+    desc: Follow local Docker service logs
+    cmds:
+      - docker compose --env-file .env.local logs -f
 
- docker:down:
- desc: "Stop and clean up Docker containers"
- cmds:
- - docker compose --env-file .env.local down
+  docker:prod:
+    desc: Launch the production Docker stack
+    cmds:
+      - docker compose --env-file .env.production -f docker-compose.prod.yml up -d --pull always
 
- docker:logs:
- desc: "Show Docker container logs"
- cmds:
- - docker compose --env-file .env.local logs -f
+  test:
+    desc: Run backend tests
+    dir: backend
+    cmds:
+      - npm test
 
- # ============================================
- # Azure DevOps Deployment
- # ============================================
- deploy:azure:
- desc: "Trigger Azure DevOps pipeline deployment (requires Azure CLI + gh)"
- cmds:
- - echo "Triggering Azure DevOps pipeline..."
- - az pipelines run --name SchoolHub-CI-CD --org https://dev.azure.com/schoolhub-dev-26 --project SchoolHub
- - echo "Pipeline triggered. Check: https://dev.azure.com/schoolhub-dev-26/SchoolHub/_build"
+  test:frontend:
+    desc: Run frontend tests
+    dir: frontend
+    cmds:
+      - npm test
 
- deploy:gh:
- desc: "Push current branch to trigger Azure DevOps CI/CD pipeline"
- cmds:
- - git push origin HEAD
-
- # ============================================
- # Testing
- # ============================================
- test:
- desc: "Run backend tests"
- dir: backend
- cmds:
- - npm test
-
- test:frontend:
- desc: "Run frontend tests"
- dir: frontend
- cmds:
- - npm test
-
- # ============================================
- # Verification
- # ============================================
- verify:devops:
- desc: "Run automated DevOps deployment verification audit"
- cmds:
- - ./scripts/verify-devops-deployment.sh
-
- verify:env:
- desc: "Verify environment configuration"
- deps: [env:check]
- cmds:
- - |
- echo "Environment variable checklist:"
- echo ""
- grep -q "CHANGE_ME" .env.production 2>/dev/null && \
- echo " [WARN] .env.production still has placeholder values!" || \
- echo " [OK] .env.production appears configured"
- - |
- echo ""
- echo "Checking .gitignore for secrets..."
- grep -q "backend/.env" .gitignore && echo " [OK] backend/.env in .gitignore" || echo " [FAIL] backend/.env NOT in .gitignore!"
+  verify:devops:
+    desc: Run the DevOps deployment verification audit
+    cmds:
+      - ./scripts/verify-devops-deployment.sh

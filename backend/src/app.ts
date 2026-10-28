@@ -33,7 +33,11 @@ import { errorHandler } from "./middleware/errorHandler";
 const app = express();
 
 // Security
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  })
+);
 
 // CORS
 app.use(
